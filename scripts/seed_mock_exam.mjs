@@ -63,6 +63,19 @@ const CONFIGS = {
       { title: "고용노동관계법규(Ⅰ)", code: "labor-law", max: 20, min: 8 },
     ],
   },
+  jiksang1: {
+    cert: { name: "직업상담사 1급", description: "직업상담사 1급 필기 출제기준(2025~2027)에 맞춘 예상문제", sort_order: 8 },
+    title: (n) => `직업상담사 1급 필기 예상문제 제${n}회`,
+    description: "2025~2027년 출제기준에 맞춰 만든 예상문제(5과목 100문항)입니다. 실제 기출문제가 아닙니다. 법령은 2026년 11월 시행 기준입니다.",
+    durationMinutes: 150,
+    sections: [
+      { title: "직업심리 및 전직지원", code: "psychology-transition", max: 20, min: 8 },
+      { title: "심층직업상담 및 슈퍼비전", code: "counseling-supervision", max: 20, min: 8 },
+      { title: "직업정보가공", code: "occupational-info-processing", max: 20, min: 8 },
+      { title: "노동시장분석", code: "labor-market-analysis", max: 20, min: 8 },
+      { title: "고용노동관계법규(Ⅱ)", code: "labor-law-2", max: 20, min: 8 },
+    ],
+  },
 };
 
 async function main() {
