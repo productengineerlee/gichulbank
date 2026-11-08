@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchByIds } from "@/lib/supabase/paging";
 
 export type CertificationSummary = { id: string; code: string; name: string; description: string | null; examCount: number; mockCount: number; questionCount: number };
 
@@ -71,10 +72,9 @@ export async function getCertification(code: string): Promise<CertificationDetai
   if (scheduleError || examError || !exams) throw new Error("자격증 상세 정보를 불러오지 못했습니다.");
 
   const examIds = exams.map((exam) => exam.id);
-  const { data: questions, error: questionError } = examIds.length
-    ? await admin.from("questions").select("exam_id").in("exam_id", examIds).eq("is_active", true)
-    : { data: [], error: null };
-  if (questionError) throw new Error("자격증 문항 수를 불러오지 못했습니다.");
+  // 사회복지사 1급처럼 문항이 1,000개를 넘는 자격증도 있어 끝까지 나눠 읽는다(PostgREST 1,000행 제한).
+  const questions = await fetchByIds(examIds, (ids, from, to) =>
+    admin.from("questions").select("id,exam_id").in("exam_id", ids).eq("is_active", true).order("id").range(from, to), "자격증 문항 수를 불러오지 못했습니다.");
 
   return {
     id: cert.id,
@@ -87,7 +87,7 @@ export async function getCertification(code: string): Promise<CertificationDetai
     })),
     exams: exams.map((exam) => ({
       slug: exam.slug, title: exam.title, durationMinutes: exam.duration_minutes,
-      questionCount: (questions ?? []).filter((question) => question.exam_id === exam.id).length,
+      questionCount: questions.filter((question) => question.exam_id === exam.id).length,
     })),
   };
 }
