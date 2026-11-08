@@ -50,6 +50,19 @@ const CONFIGS = {
       { title: "정보시스템 구축관리", code: "system-management", max: 20, min: 8 },
     ],
   },
+  jiksang2: {
+    cert: { name: "직업상담사 2급", description: "직업상담사 2급 필기 출제기준(2025~2027)에 맞춘 예상문제", sort_order: 7 },
+    title: (n) => `직업상담사 2급 필기 예상문제 제${n}회`,
+    description: "2025~2027년 출제기준에 맞춰 만든 예상문제(5과목 100문항)입니다. 실제 기출문제가 아닙니다. 법령은 2026년 11월 시행 기준입니다.",
+    durationMinutes: 150,
+    sections: [
+      { title: "직업심리", code: "vocational-psychology", max: 20, min: 8 },
+      { title: "직업상담 및 취업지원", code: "counseling-employment", max: 20, min: 8 },
+      { title: "직업정보", code: "occupational-info", max: 20, min: 8 },
+      { title: "노동시장", code: "labor-market", max: 20, min: 8 },
+      { title: "고용노동관계법규(Ⅰ)", code: "labor-law", max: 20, min: 8 },
+    ],
+  },
 };
 
 async function main() {
