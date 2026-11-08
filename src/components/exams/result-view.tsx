@@ -73,7 +73,7 @@ export function ResultView({ slug }: { slug: string }) {
   const weakestSection = useMemo(() => result?.diagnostics?.sections ? [...result.diagnostics.sections].sort((a, b) => a.percentage - b.percentage)[0] : null, [result]);
   const weakestCompetency = result?.diagnostics?.competencies?.[0] ?? null;
 
-  if (!result) return <main className="result-empty"><BarChart3 /><h1>{loading ? "채점 결과를 불러오는 중입니다" : loadError ? "결과를 불러오지 못했습니다" : "채점 결과가 없습니다"}</h1><p>{loading ? "서버가 버지니아에 있어 불러오는데 조금 시간이 걸려요. 잠시만 기다려 주세요." : loadError ? "네트워크 상태를 확인하고 새로고침해 주세요." : "모의고사를 제출하면 결과가 이곳에 표시됩니다."}</p><Link href="/license">기출문제 목록으로 돌아가기</Link></main>;
+  if (!result) return <main className="result-empty"><BarChart3 /><h1>{loading ? "채점 결과를 불러오는 중입니다" : loadError ? "결과를 불러오지 못했습니다" : "채점 결과가 없습니다"}</h1><p>{loading ? "잠시만 기다려 주세요." : loadError ? "네트워크 상태를 확인하고 새로고침해 주세요." : "모의고사를 제출하면 결과가 이곳에 표시됩니다."}</p><Link href="/license">기출문제 목록으로 돌아가기</Link></main>;
 
   const reviewSavedCount = result.certificationCode ? result.questions.filter((question) => !question.isCorrect && question.userAnswer.trim() !== "").length : 0;
   const listHref = result.certificationCode ? `/license/${result.certificationCode}` : "/license";
