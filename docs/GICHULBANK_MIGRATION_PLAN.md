@@ -67,7 +67,8 @@
 - [x] 메인화면(랜딩) 디자인 개편 (밝은 학습앱 + 회원 개인화 요약)
 - [x] 구 `gichulbank` 폴더는 `E:\Projects\gichulbank_old`로 이름 변경 (1~2주 뒤 삭제 예정)
 - [x] 폴더명 `aice_basic` → `gichulbank` 변경
-- [x] GitHub 저장소 이름 `aice-basic` → `gichulbank` 변경, 로컬 git 원격 주소도 새 이름으로 교체 (Vercel 프로젝트 이름은 아직 `aice-basic`)
+- [x] GitHub 저장소 이름 `aice-basic` → `gichulbank` 변경, 로컬 git 원격 주소도 새 이름으로 교체
+- [x] Vercel 프로젝트 이름 `aice-basic` → `gichulbank` 변경 (2026-11-08). `aice-basic.vercel.app` 도메인은 그대로 연결되어 새 주소로 308 리다이렉트·`/auth/callback` 처리 유지 확인
 
 ## 주의
 - 공공저작물 개방이 서비스 내 원문 재배포 허용과 같은 의미인지, 시험별 공공누리 유형(상업적 이용·변경 금지 여부) 확인 필요 (한국사: 국사편찬위원회, 공인중개사: 한국산업인력공단)
