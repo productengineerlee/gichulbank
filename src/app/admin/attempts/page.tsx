@@ -14,12 +14,23 @@ const statusLabel: Record<AttemptStatus, string> = {
 
 async function loadAttempts() {
   const admin = createAdminClient();
-  const [{ data: attempts, error: attemptError }, { data: exams, error: examError }, { data: certifications, error: certError }] = await Promise.all([
-    admin.from("attempts").select("id,user_id,exam_id,status,total_score,started_at").order("started_at", { ascending: false }),
+  // Supabase 는 한 번에 최대 1,000행만 돌려주므로 응시 기록은 나눠 읽는다
+  const loadAllAttempts = async () => {
+    const rows: { id: string; user_id: string; exam_id: string; status: AttemptStatus; total_score: number | null; started_at: string }[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await admin.from("attempts").select("id,user_id,exam_id,status,total_score,started_at")
+        .order("started_at", { ascending: false }).order("id", { ascending: false }).range(from, from + 999);
+      if (error || !data) throw new Error("응시 현황을 불러오지 못했습니다.");
+      rows.push(...data);
+      if (data.length < 1000) return rows;
+    }
+  };
+  const [attempts, { data: exams, error: examError }, { data: certifications, error: certError }] = await Promise.all([
+    loadAllAttempts(),
     admin.from("exams").select("id,title,certification_id"),
     admin.from("certifications").select("id,name"),
   ]);
-  if (attemptError || examError || certError || !attempts || !exams || !certifications) throw new Error("응시 현황을 불러오지 못했습니다.");
+  if (examError || certError || !exams || !certifications) throw new Error("응시 현황을 불러오지 못했습니다.");
 
   const users = await listAllUsers(admin);
 
