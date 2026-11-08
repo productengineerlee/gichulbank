@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
-import { Award, BarChart3, BookOpen, BookOpenCheck, ClipboardList, LayoutDashboard, ListChecks, LogOut } from "lucide-react";
+import { Award, BarChart3, BookOpen, BookOpenCheck, ClipboardList, LayoutDashboard, ListChecks, LogOut, Users } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
 import { requireAdmin } from "@/lib/admin-auth";
 import { LoadingScreen } from "@/components/system/loading-screen";
@@ -16,6 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <Link href="/admin"><LayoutDashboard />관리자 홈</Link>
         <Link href="/admin/exams"><BookOpenCheck />시험·문항 관리</Link>
         <Link href="/admin/attempts"><ListChecks />전체 응시 현황</Link>
+        <Link href="/admin/members"><Users />회원가입 현황</Link>
         <Link href="/admin/diagnostics"><BarChart3 />진단 규칙 관리</Link>
         <Link href="/admin/theory"><BookOpen />핵심이론 관리</Link>
         <Link href="/admin/license-schedules"><Award />자격증 일정 관리</Link>
