@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Save } from "lucide-react";
 import { notFound } from "next/navigation";
 import { updateExamAction } from "@/app/admin/actions";
+import { promptPreview } from "@/lib/format-prompt";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export default async function AdminExamDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string }> }) {
@@ -27,6 +28,6 @@ export default async function AdminExamDetailPage({ params, searchParams }: { pa
       <div className="form-grid three"><label><span>시험 시간(분)</span><input type="number" name="durationMinutes" min="1" max="600" defaultValue={exam.duration_minutes} required /></label><label><span>합격 점수</span><input type="number" name="passingScore" min="0" max={exam.total_score} step="0.01" defaultValue={exam.passing_score} required /></label><label><span>현재 총점</span><input value={`${exam.total_score}점`} disabled /></label></div>
       <label className="check-row"><input type="checkbox" name="fixedOrder" defaultChecked={exam.fixed_order} /><span>문항 순서를 고정합니다.</span></label>
     </form>
-    <section className="admin-panel question-management"><div className="admin-panel-head"><div><span>QUESTIONS</span><h2>문항 목록</h2></div><small>활성 {(questions ?? []).filter(question => question.is_active).length} / 전체 {(questions ?? []).length}</small></div><div className="admin-question-list">{(questions ?? []).map(question => { const section = sectionById.get(question.section_id); return <article key={question.id} className={!question.is_active ? "inactive" : ""}><div className="question-number">{question.number}</div><div className="question-summary"><div><span>{section?.title ?? "영역 없음"}</span><small>{question.type} · 난이도 {question.difficulty} · {question.score}점</small>{!question.is_active && <b>비활성</b>}</div><h3>{question.prompt}</h3><p>{question.competency_tags.join(" · ") || "역량 태그 없음"}</p></div><Link href={`/admin/questions/${question.id}`}>수정 <ArrowRight /></Link></article>; })}</div></section>
+    <section className="admin-panel question-management"><div className="admin-panel-head"><div><span>QUESTIONS</span><h2>문항 목록</h2></div><small>활성 {(questions ?? []).filter(question => question.is_active).length} / 전체 {(questions ?? []).length}</small></div><div className="admin-question-list">{(questions ?? []).map(question => { const section = sectionById.get(question.section_id); return <article key={question.id} className={!question.is_active ? "inactive" : ""}><div className="question-number">{question.number}</div><div className="question-summary"><div><span>{section?.title ?? "영역 없음"}</span><small>{question.type} · 난이도 {question.difficulty} · {question.score}점</small>{!question.is_active && <b>비활성</b>}</div><h3>{promptPreview(question.prompt)}</h3><p>{question.competency_tags.join(" · ") || "역량 태그 없음"}</p></div><Link href={`/admin/questions/${question.id}`}>수정 <ArrowRight /></Link></article>; })}</div></section>
   </main>;
 }

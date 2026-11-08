@@ -227,3 +227,21 @@ footer { border-top: 1px solid var(--line); }
   white-space: pre;
   tab-size: 4;
 }
+
+/* 시험지의 네모 박스 제시문(:::box 로 감싼 부분). 줄바꿈은 지문 컨테이너 설정을 따르되 박스 안에서는 항상 지킨다 */
+.prompt-box {
+  margin: 12px 0;
+  padding: 12px 16px;
+  border: 1px solid #8d8a84;
+  border-radius: 4px;
+  background: #fff;
+  white-space: pre-wrap;
+}
+.prompt-box .prompt-table-wrap { margin: 8px 0 0; }
+
+/* 지문 안의 표(마크다운 | 표) */
+.prompt-table-wrap { margin: 12px 0; overflow-x: auto; }
+.prompt-table { border-collapse: collapse; font-size: 0.95em; white-space: normal; }
+.prompt-table th,
+.prompt-table td { border: 1px solid #b9b5ae; padding: 6px 12px; text-align: center; }
+.prompt-table th { background: #f7f6f3; font-weight: 600; }

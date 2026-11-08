@@ -5,6 +5,7 @@ import { ExamHeader } from "@/components/exams/exam-header";
 import { RoundQuestionStats } from "@/components/license/round-question-stats";
 import { getCertification } from "@/lib/certifications";
 import { getCertificationStats, getWrongAnswerNotebook } from "@/lib/license-stats";
+import { promptPreview } from "@/lib/format-prompt";
 import { createClient } from "@/lib/supabase/server";
 import "../../exams/exams.css";
 import "../license.css";
@@ -98,7 +99,7 @@ export default async function LicenseDetailPage({ params }: { params: Promise<{ 
                     <div className="hardest-list">
                       {items.map((question) => (
                         <div className="hardest-row" key={question.questionId}>
-                          <p>{question.prompt}<small>{question.examTitle} · {question.number}번 · 응시 {question.attemptCount}회</small></p>
+                          <p>{promptPreview(question.prompt)}<small>{question.examTitle} · {question.number}번 · 응시 {question.attemptCount}회</small></p>
                           <b>{question.accuracy}%</b>
                         </div>
                       ))}
@@ -136,7 +137,7 @@ export default async function LicenseDetailPage({ params }: { params: Promise<{ 
                     <div className="notebook-list">
                       {items.map((item, index) => (
                         <article className="notebook-card" key={`${item.attemptId}-${item.number}-${index}`}>
-                          <p>{item.number}. {item.prompt}</p>
+                          <p>{item.number}. {promptPreview(item.prompt)}</p>
                           <div className="notebook-meta">
                             <span className="wrong">내 답 {item.selectedLabel ? `${item.selectedLabel}번` : "미응답"}</span>
                             <span className="correct">정답 {item.correctLabel ? `${item.correctLabel}번` : "-"}</span>

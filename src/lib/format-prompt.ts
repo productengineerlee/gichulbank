@@ -1,6 +1,7 @@
 /** 기출 지문의 o/ㅇ/○/- 글머리표를 줄바꿈으로 정리한다. 응시 화면·오답노트에서 함께 쓴다. */
 export function formatPrompt(prompt: string) {
-  const bulletPattern = /(\S)\s+([oOㅇ○])\s+/g;
+  // 같은 줄 안에서 이어진 글머리표만 나눈다. 이미 줄 맨 앞에 있는 글머리표(박스 제시문 등)는 그대로 둔다.
+  const bulletPattern = /(\S)[ \t]+([oOㅇ○])[ \t]+/g;
   if (bulletPattern.test(prompt)) {
     let isFirstItem = true;
     return prompt.replace(bulletPattern, (_, prev: string) => {
@@ -18,6 +19,11 @@ export function formatPrompt(prompt: string) {
     isFirstDash = false;
     return `${prev}${separator}ㅇ `;
   });
+}
+
+/** 목록·미리보기용 한 줄 지문: 코드 블록(```)·박스(:::box) 마크업 기호를 걷어 낸다. */
+export function promptPreview(prompt: string) {
+  return prompt.replace(/```[a-zA-Z]*\n?/g, "").replace(/:::box\n?|\n?:::/g, " ").replace(/\s+/g, " ").trim();
 }
 
 /** 해설 데이터는 "정답 ④" 줄로 시작한다(검수용). 화면에는 정답이 따로 보이므로 그 줄은 빼고 보여준다. */
