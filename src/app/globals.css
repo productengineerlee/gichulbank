@@ -245,3 +245,25 @@ footer { border-top: 1px solid var(--line); }
 .prompt-table th,
 .prompt-table td { border: 1px solid #b9b5ae; padding: 6px 12px; text-align: center; }
 .prompt-table th { background: #f7f6f3; font-weight: 600; }
+
+/* 해설: 총평 + 보기별 카드 (ExplanationView) */
+.explanation-view{display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.65;color:#4b5058}
+.explanation-heading{color:#2f5577;font-size:14px}
+.explanation-summary{margin:0;color:#1f2328}
+.explanation-empty{margin:0}
+.explanation-choices{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.explanation-choices li{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #e5e2dc;border-radius:10px;background:#fbfaf8}
+.explanation-choices li>div{flex:1;min-width:0}
+.explanation-choices li>svg{width:18px;height:18px;flex-shrink:0;color:#3f6b4f;margin-top:2px}
+.explanation-choices li.correct{border-color:#a9c7b2;background:#edf3ee}
+.explanation-choices li.picked{border-color:#e6cbbd;background:#f7ece6}
+.explanation-choice-num{flex-shrink:0;width:22px;font-weight:700;color:#4b5058}
+.explanation-choices li.correct .explanation-choice-num{color:#3f6b4f}
+.explanation-choices li.picked .explanation-choice-num{color:#a2522e}
+.explanation-choice-content{margin:0;color:#1f2328;font-weight:600;white-space:pre-wrap}
+.explanation-choice-note{margin:2px 0 0;white-space:pre-wrap}
+.explanation-choice-content+.explanation-choice-note{font-size:13px}
+.explanation-view .explanation-note{display:block;font-size:12px;color:#858a91}
+
+/* 문제 출처(저작권) 안내 */
+.exam-source-note{margin:16px 0 0;padding:10px 12px;border-radius:8px;background:#f7f6f3;color:#858a91;font-size:12px;line-height:1.6}

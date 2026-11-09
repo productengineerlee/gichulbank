@@ -8,7 +8,9 @@ import { formatPrompt } from "@/lib/format-prompt";
 const BLOCK_PATTERN = /```[a-zA-Z]*\n?([\s\S]*?)```|:::box\n?([\s\S]*?)\n?:::/g;
 
 /** 문항 지문 표시. 코드 블록·박스 제시문·표를 나눠 그리고, 나머지 글은 formatPrompt 로 정리해 보여 준다. */
-export function PromptText({ prompt, className }: { prompt: string; className?: string }) {
+export function PromptText({ prompt: raw, className }: { prompt: string; className?: string }) {
+  // 원문 추출 과정에서 섞인 제어 문자(예: 한국사 80회 지문 끝의 백스페이스 문자)는 화면에 네모로 보이므로 지운다.
+  const prompt = raw.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "");
   const nodes: ReactNode[] = [];
   let last = 0;
   for (const match of prompt.matchAll(BLOCK_PATTERN)) {

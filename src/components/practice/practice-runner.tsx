@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, GraduationCap, RotateCcw, XCircle } from "lucide-react";
-import { AI_EXPLANATION_NOTE, formatExplanation } from "@/lib/format-prompt";
 import { PromptText } from "@/components/prompt-text";
+import { ExplanationView } from "@/components/explanation-view";
 import type { PracticeQuestion } from "@/lib/review";
 
 type RunnerQuestion = PracticeQuestion & { reasonLabel?: string };
@@ -154,7 +154,7 @@ export function PracticeRunner({ questions, title, mode, earlyPractice = false, 
         </div>
         {!feedback.isCorrect && <p><b>정답</b> {feedback.correctAnswer}</p>}
         {message && <p className="practice-review-note">{message}</p>}
-        <ExplanationText text={feedback.explanation} />
+        <ExplanationView text={feedback.explanation} correctLabel={feedback.correctLabel} selectedLabel={selected} />
       </div>}
 
       <div className="practice-actions">
@@ -166,7 +166,3 @@ export function PracticeRunner({ questions, title, mode, earlyPractice = false, 
   </div>;
 }
 
-function ExplanationText({ text }: { text: string | null }) {
-  const body = formatExplanation(text);
-  return <div className="review-explanation"><b>해설</b><p>{body ?? "해설을 준비 중입니다."}{body && <small className="explanation-note">{AI_EXPLANATION_NOTE}</small>}</p></div>;
-}

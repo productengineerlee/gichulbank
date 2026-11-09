@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ExamHeader } from "@/components/exams/exam-header";
 import { PracticeRunner } from "@/components/practice/practice-runner";
+import { examSource } from "@/lib/exam-source";
 import { loadRoundPractice } from "@/lib/round-practice";
 import { createClient } from "@/lib/supabase/server";
 import "../../exams.css";
@@ -38,6 +39,7 @@ export default async function RoundPracticePage({ params, searchParams }: { para
         <p>이 회차에는 한 문제씩 채점할 수 있는 객관식 문항이 없습니다.</p>
         <Link href={`/license/${round.certCode}`}>돌아가기</Link>
       </div>}
+      {examSource(slug) && <p className="exam-source-note">{examSource(slug)?.text}</p>}
     </section>
   </main>;
 }

@@ -1,0 +1,35 @@
+.explain-shell{max-width:1120px;margin:0 auto;padding:36px 24px 90px}
+.explain-hero{background:#fff;border:1px solid #e5e2dc;border-radius:12px;padding:30px}
+.explain-hero h1{font-size:26px;color:#1f2328;margin:6px 0 8px;word-break:keep-all}
+.explain-hero>p:not(.exam-source-note){color:#4b5058;font-size:14px;line-height:1.6;margin:0}
+.explain-cta{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.explain-cta a{display:inline-flex;align-items:center;gap:6px;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:700;background:#1f2328;color:#fff;border:1px solid #1f2328}
+.explain-cta a.practice{background:#fff;color:#2f5577;border-color:#2f5577}
+.explain-cta a svg{width:16px;height:16px}
+
+.explain-layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:24px;margin-top:24px;align-items:start}
+.explain-toc{position:sticky;top:20px;max-height:calc(100vh - 40px);overflow:auto;background:#fff;border:1px solid #e5e2dc;border-radius:12px;padding:16px 10px 16px 16px}
+.explain-toc b{display:block;font-size:13px;color:#1f2328;margin-bottom:10px}
+.explain-toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.explain-toc a{display:flex;gap:8px;padding:5px 6px;border-radius:6px;font-size:12px;line-height:1.45;color:#4b5058}
+.explain-toc a:hover{background:#f7f6f3;color:#1f2328}
+.explain-toc a span{flex-shrink:0;width:20px;color:#858a91;text-align:right}
+
+.explain-list{display:flex;flex-direction:column;gap:16px;min-width:0}
+.explain-card{background:#fff;border:1px solid #e5e2dc;border-radius:12px;padding:22px;scroll-margin-top:16px}
+.explain-card:target{border-color:#2f5577;box-shadow:0 0 0 2px rgba(47,85,119,.15)}
+.explain-card-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.explain-num{background:#8a2f22;color:#fff;border-radius:6px;padding:3px 8px;font-size:12px;font-weight:700}
+.explain-card-head h2{flex:1;min-width:0;font-size:17px;color:#1f2328;margin:0;word-break:keep-all}
+.explain-card-head small{font-size:12px;color:#858a91;font-weight:600}
+.explain-section{margin:6px 0 0;font-size:12px;color:#858a91}
+.explain-card .review-full-prompt{margin:14px 0}
+.explain-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.explain-tags span{background:#f6ece9;color:#8a2f22;border-radius:999px;padding:4px 10px;font-size:12px}
+
+@media (max-width:860px){
+  .explain-shell{padding:24px 16px 70px}
+  .explain-layout{grid-template-columns:1fr}
+  .explain-toc{position:static;max-height:260px}
+  .explain-card{padding:18px 16px}
+}
