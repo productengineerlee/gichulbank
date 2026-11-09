@@ -18,7 +18,7 @@ export default async function AdminExamDetailPage({ params, searchParams }: { pa
   const sectionById = new Map((sections ?? []).map(section => [section.id, section]));
   return <main className="admin-content">
     <Link className="admin-back" href="/admin/exams"><ArrowLeft />시험 목록</Link>
-    <header className="admin-page-head compact"><div><span>EXAM SETTINGS</span><h1>{exam.title}</h1><p>{exam.slug}</p></div><Link className="admin-secondary" href={`/exams/${exam.slug}`}>사용자 화면 <ArrowRight /></Link></header>
+    <header className="admin-page-head compact"><div><span>EXAM SETTINGS</span><h1>{exam.title}</h1><p>{exam.slug}</p></div>{exam.status === "published" && <Link className="admin-secondary" href={`/exams/${exam.slug}/explanation`} target="_blank">해설 페이지 <ArrowRight /></Link>}</header>
     {message.saved && <div className="admin-message success">{message.saved}</div>}{message.error && <div className="admin-message error">{message.error}</div>}
     <form className="admin-panel admin-form" action={updateExamAction}>
       <input type="hidden" name="id" value={exam.id} /><input type="hidden" name="returnTo" value={`/admin/exams/${exam.id}`} />

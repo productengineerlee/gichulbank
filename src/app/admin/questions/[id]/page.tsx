@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, Save, ShieldCheck } from "lucide-react";
 import { notFound } from "next/navigation";
 import { updateQuestionAction } from "@/app/admin/actions";
+import { PromptText } from "@/components/prompt-text";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export default async function AdminQuestionPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string }> }) {
@@ -25,7 +26,14 @@ export default async function AdminQuestionPage({ params, searchParams }: { para
     <form className="question-editor" action={updateQuestionAction}>
       <input type="hidden" name="id" value={question.id} /><input type="hidden" name="returnTo" value={`/admin/questions/${question.id}`} />
       <section className="admin-panel admin-form"><div className="admin-panel-head"><div><span>QUESTION</span><h2>문항 정보</h2></div><button className="admin-primary"><Save />전체 저장</button></div>
-        <label><span>문제</span><textarea name="prompt" defaultValue={question.prompt} rows={4} required /></label>
+        <div className="question-preview"><span>사용자 화면 미리보기</span>
+          <PromptText className="question-preview-prompt" prompt={question.prompt} />
+          {/* eslint-disable-next-line @next/next/no-img-element -- Supabase Storage 원본 이미지를 그대로 보여준다 */}
+          {question.image_url && <img src={question.image_url} alt={`문제 ${question.number} 자료`} />}
+          {question.image_url && <a href={question.image_url} target="_blank" rel="noreferrer">자료 이미지 원본 열기</a>}
+          <small>저장한 내용 기준이에요. 문제를 고친 뒤에는 저장해야 미리보기에 반영돼요.</small>
+        </div>
+        <label><span>문제</span><textarea name="prompt" defaultValue={question.prompt} rows={8} required /></label>
         <label><span>실행 안내</span><textarea name="instructions" defaultValue={question.instructions ?? ""} rows={3} /></label>
         <div className="form-grid three"><label><span>영역</span><select name="sectionId" defaultValue={question.section_id}>{(sections ?? []).map(section => <option value={section.id} key={section.id}>{section.title}</option>)}</select></label><label><span>배점</span><input type="number" name="score" min="0.01" step="0.01" defaultValue={question.score} /></label><label><span>난이도</span><input type="number" name="difficulty" min="1" max="5" defaultValue={question.difficulty} /></label></div>
         <div className="form-grid two"><label><span>역량 태그</span><input name="competencyTags" defaultValue={question.competency_tags.join(", ")} placeholder="쉼표로 구분" /></label><label><span>답안 형식 안내</span><input name="answerFormatHint" defaultValue={question.answer_format_hint ?? ""} /></label></div>
