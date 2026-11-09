@@ -2,6 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, fetchByIds } from "@/lib/supabase/paging";
+import { listAdminAttemptIds } from "@/lib/stats-exclusion";
 
 // PostgREST는 요청당 최대 1,000행만 돌려주고, .in() 목록은 URL 길이 제한이 있다. 한국사처럼
 // 응시가 많은 자격증은 문항 150개 묶음 하나의 답안만 1,000행을 넘으므로, 대량 조회는 모두
@@ -54,10 +55,14 @@ export async function getCertificationStats(certificationId: string): Promise<Ce
   const sectionById = new Map(sections.map((section) => [section.id, section]));
 
   const questionIds = questions.map((question) => question.id);
-  const [seedRows, liveAnswers] = await Promise.all([
+  const [seedRows, allLiveAnswers, adminAttemptIds] = await Promise.all([
     fetchByIds(questionIds, (ids, from, to) => admin.from("question_stat_seed").select("question_id,attempt_count,correct_count").in("question_id", ids).order("question_id").range(from, to), "자격증 통계를 불러오지 못했습니다."),
-    fetchByIds(questionIds, (ids, from, to) => admin.from("attempt_answers").select("id,question_id,is_correct").in("question_id", ids).not("is_correct", "is", null).order("id").range(from, to), "자격증 통계를 불러오지 못했습니다."),
+    fetchByIds(questionIds, (ids, from, to) => admin.from("attempt_answers").select("id,attempt_id,question_id,is_correct").in("question_id", ids).not("is_correct", "is", null).order("id").range(from, to), "자격증 통계를 불러오지 못했습니다."),
+    listAdminAttemptIds(),
   ]);
+  // 관리자 계정의 테스트 응시는 통계에서 뺀다.
+  const excluded = new Set(adminAttemptIds);
+  const liveAnswers = allLiveAnswers.filter((answer) => !excluded.has(answer.attempt_id));
 
   const countsByQuestion = new Map<string, { attempt: number; correct: number }>();
   for (const row of seedRows) countsByQuestion.set(row.question_id, { attempt: row.attempt_count, correct: row.correct_count });

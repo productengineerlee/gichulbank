@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { inList, listAdminAttemptIds, listAdminUserIds } from "@/lib/stats-exclusion";
 import type { ExamKind } from "@/types/database";
 
 export type ExamSummary = {
@@ -88,10 +89,21 @@ export type SiteStats = { attemptCount: number; answeredCount: number };
  * 누적 문제 풀이 = 저장된 문항 답안 수(답을 고른 문항만 행이 생긴다). */
 export async function getSiteStats(): Promise<SiteStats> {
   const admin = createAdminClient();
-  const [attempts, answers] = await Promise.all([
-    admin.from("attempts").select("id", { count: "exact", head: true }),
+  // 관리자 계정의 테스트 응시는 이용 현황에서 뺀다. 응시는 관리자 id(몇 개뿐)로 거르고, 답안은
+  // 전체 개수에서 관리자 응시의 답안 개수를 뺀다(응시 id 목록을 URL에 넣으면 길이 제한에 걸릴 수 있다).
+  const adminIds = await listAdminUserIds();
+  const attemptQuery = admin.from("attempts").select("id", { count: "exact", head: true });
+  const [attempts, answers, adminAttemptIds] = await Promise.all([
+    adminIds.length ? attemptQuery.not("user_id", "in", inList(adminIds)) : attemptQuery,
     admin.from("attempt_answers").select("id", { count: "exact", head: true }),
+    listAdminAttemptIds(adminIds),
   ]);
   if (attempts.error || answers.error) throw new Error("이용 현황을 불러오지 못했습니다.");
-  return { attemptCount: attempts.count ?? 0, answeredCount: answers.count ?? 0 };
+  let adminAnswerCount = 0;
+  for (let i = 0; i < adminAttemptIds.length; i += 100) {
+    const { count, error } = await admin.from("attempt_answers").select("id", { count: "exact", head: true }).in("attempt_id", adminAttemptIds.slice(i, i + 100));
+    if (error) throw new Error("이용 현황을 불러오지 못했습니다.");
+    adminAnswerCount += count ?? 0;
+  }
+  return { attemptCount: attempts.count ?? 0, answeredCount: Math.max(0, (answers.count ?? 0) - adminAnswerCount) };
 }
