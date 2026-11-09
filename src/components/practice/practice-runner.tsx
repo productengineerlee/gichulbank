@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, GraduationCap, RotateCcw, XCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, GraduationCap, RotateCcw, XCircle } from "lucide-react";
 import { PromptText } from "@/components/prompt-text";
 import { ExplanationView } from "@/components/explanation-view";
 import type { PracticeQuestion } from "@/lib/review";
@@ -53,6 +53,8 @@ export function PracticeRunner({ questions, title, mode, earlyPractice = false, 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [outcomes, setOutcomes] = useState<Outcome[]>(() => initialOutcomes.map((item) => ({ ...item, graduated: false })));
+  // 이번에 푼 문항의 선택·채점 결과. 이전 문제로 돌아가면 그대로 다시 보여 준다.
+  const [answered, setAnswered] = useState<Record<number, { selected: string; feedback: Feedback }>>({});
   const shownAt = useRef(0);
 
   const question = questions[index];
@@ -75,7 +77,9 @@ export function PracticeRunner({ questions, title, mode, earlyPractice = false, 
       if (!response.ok) throw new Error(data.error ?? "채점하지 못했습니다.");
       const result = data as Feedback;
       setFeedback(result);
-      setOutcomes((prev) => [...prev, { questionId: question.questionId, isCorrect: result.isCorrect, graduated: Boolean(result.isCorrect && result.review?.graduated && result.review.counted) }]);
+      setAnswered((prev) => ({ ...prev, [index]: { selected, feedback: result } }));
+      // 이어 풀기로 넘어온 앞 문항을 다시 풀면 그 문항의 결과를 새 결과로 바꾼다.
+      setOutcomes((prev) => [...prev.filter((item) => item.questionId !== question.questionId), { questionId: question.questionId, isCorrect: result.isCorrect, graduated: Boolean(result.isCorrect && result.review?.graduated && result.review.counted) }]);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "채점하지 못했습니다.");
     } finally {
@@ -83,13 +87,16 @@ export function PracticeRunner({ questions, title, mode, earlyPractice = false, 
     }
   }
 
-  function next() {
-    setIndex((value) => value + 1);
-    setSelected(null);
-    setFeedback(null);
+  function go(target: number) {
+    const record = answered[target];
+    setIndex(target);
+    setSelected(record?.selected ?? null);
+    setFeedback(record?.feedback ?? null);
     setError(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+  const next = () => go(index + 1);
+  const previous = () => go(index - 1);
 
   if (finished) {
     const correct = outcomes.filter((item) => item.isCorrect).length;
@@ -158,6 +165,7 @@ export function PracticeRunner({ questions, title, mode, earlyPractice = false, 
       </div>}
 
       <div className="practice-actions">
+        {index > 0 && <button type="button" className="secondary" disabled={submitting} onClick={previous}><ArrowLeft />이전 문제</button>}
         {feedback
           ? <button type="button" className="primary" onClick={next}>{index + 1 < questions.length ? "다음 문제" : "결과 보기"}<ArrowRight /></button>
           : <button type="button" className="primary" disabled={!selected || submitting} onClick={() => void submit()}>{submitting ? "채점 중..." : "정답 확인"}</button>}

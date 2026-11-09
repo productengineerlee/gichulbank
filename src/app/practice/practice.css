@@ -39,7 +39,10 @@
 .practice-review-note{color:#4b5058;font-size:13px}
 .practice-feedback .review-explanation{margin:8px 0 0}
 
-.practice-actions{display:flex;justify-content:flex-end}
+.practice-actions{display:flex;justify-content:flex-end;gap:8px}
+.practice-actions .secondary{display:flex;align-items:center;gap:6px;margin-right:auto;border:1px solid #d3cfc7;border-radius:10px;padding:13px 18px;background:#fff;color:#1f2328;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.practice-actions .secondary:disabled{opacity:.5;cursor:not-allowed}
+.practice-actions .secondary svg{width:17px}
 .practice-actions .primary{display:flex;align-items:center;gap:6px;border:0;border-radius:10px;padding:13px 22px;background:#1f2328;color:#fff;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
 .practice-actions .primary:disabled{background:#9fb2c4;cursor:not-allowed}
 .practice-actions .primary svg{width:17px}
