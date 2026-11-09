@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { ClipboardList } from "lucide-react";
+import { ChevronLeft, ChevronRight, ClipboardList } from "lucide-react";
 import { kstDateTime, listAllUsers } from "@/lib/admin-users";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, withRetry } from "@/lib/supabase/paging";
 import type { AttemptStatus } from "@/types/database";
+
+const PAGE_SIZE = 10;
 
 const statusLabel: Record<AttemptStatus, string> = {
   in_progress: "진행중",
@@ -44,19 +46,28 @@ async function loadAttempts() {
   });
 }
 
-export default async function AdminAttemptsPage({ searchParams }: { searchParams: Promise<{ cert?: string; status?: string }> }) {
+export default async function AdminAttemptsPage({ searchParams }: { searchParams: Promise<{ cert?: string; status?: string; page?: string }> }) {
   const query = await searchParams;
   const rows = await loadAttempts();
 
   const certNames = [...new Set(rows.map((row) => row.certName))].sort((a, b) => a.localeCompare(b, "ko"));
   const filtered = rows.filter((row) => (!query.cert || row.certName === query.cert) && (!query.status || row.status === query.status));
 
-  const buildHref = (next: { cert?: string; status?: string }) => {
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const page = Math.min(totalPages, Math.max(1, Number(query.page ?? "1") || 1));
+  const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  // 페이지 번호는 현재 페이지를 중심으로 최대 10개만 보여 준다
+  const firstPage = Math.max(1, Math.min(page - 4, totalPages - 9));
+  const pageNumbers = Array.from({ length: Math.min(10, totalPages) }, (_, index) => firstPage + index);
+
+  // 필터를 바꾸면 1쪽부터 보여 준다
+  const buildHref = (next: { cert?: string; status?: string; page?: number }) => {
     const params = new URLSearchParams();
     const cert = next.cert !== undefined ? next.cert : query.cert;
     const status = next.status !== undefined ? next.status : query.status;
     if (cert) params.set("cert", cert);
     if (status) params.set("status", status);
+    if (next.page && next.page > 1) params.set("page", String(next.page));
     const search = params.toString();
     return `/admin/attempts${search ? `?${search}` : ""}`;
   };
@@ -90,10 +101,10 @@ export default async function AdminAttemptsPage({ searchParams }: { searchParams
         {(Object.keys(statusLabel) as AttemptStatus[]).map((status) => <Link key={status} className={query.status === status ? "active" : ""} href={buildHref({ status })}>{statusLabel[status]}</Link>)}
       </div>
 
-      <div className="admin-panel-head"><div><span>ATTEMPTS</span><h2>응시 목록</h2></div><small>{filtered.length}건</small></div>
+      <div className="admin-panel-head"><div><span>ATTEMPTS</span><h2>응시 목록</h2></div><small>최근 시작순 {filtered.length}건 · {page}/{totalPages}쪽</small></div>
       {filtered.length ? <div className="admin-table-wrap"><table className="admin-table">
         <thead><tr><th>자격증</th><th>시험명</th><th>이메일</th><th>상태</th><th>점수</th><th>시작일시</th></tr></thead>
-        <tbody>{filtered.map((row) => <tr key={row.id}>
+        <tbody>{pageRows.map((row) => <tr key={row.id}>
           <td>{row.certName}</td>
           <td>{row.examTitle}</td>
           <td>{row.email}</td>
@@ -102,6 +113,11 @@ export default async function AdminAttemptsPage({ searchParams }: { searchParams
           <td>{kstDateTime(row.startedAt)}</td>
         </tr>)}</tbody>
       </table></div> : <p>조건에 맞는 응시 기록이 없습니다.</p>}
+      {totalPages > 1 && <nav className="admin-pagination" aria-label="응시 목록 페이지">
+        {page > 1 ? <Link href={buildHref({ page: page - 1 })} aria-label="이전 페이지"><ChevronLeft /></Link> : <span aria-hidden><ChevronLeft /></span>}
+        {pageNumbers.map((n) => <Link key={n} href={buildHref({ page: n })} className={n === page ? "active" : ""} aria-current={n === page ? "page" : undefined}>{n}</Link>)}
+        {page < totalPages ? <Link href={buildHref({ page: page + 1 })} aria-label="다음 페이지"><ChevronRight /></Link> : <span aria-hidden><ChevronRight /></span>}
+      </nav>}
     </section>
   </main>;
 }
