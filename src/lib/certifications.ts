@@ -45,7 +45,9 @@ export async function listCertifications(): Promise<CertificationSummary[]> {
     .eq("status", "published");
   if (examError) throw new Error("자격증 시험 수를 불러오지 못했습니다.");
 
-  return certifications.map((cert) => {
+  // 자격증 이름 가나다순으로 보여 준다.
+  const byName = [...certifications].sort((a, b) => a.name.localeCompare(b.name, "ko"));
+  return byName.map((cert) => {
     const certExams = (exams ?? []).filter((exam) => exam.certification_id === cert.id);
     // questions(count) 는 PostgREST 집계 임베드라 [{ count }] 형태로 온다.
     const questionCount = certExams.reduce((sum, exam) => sum + ((exam.questions as unknown as { count: number }[])[0]?.count ?? 0), 0);
