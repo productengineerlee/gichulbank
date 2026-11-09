@@ -69,7 +69,12 @@
 .license-exam-card{background:#fff;border:1px solid #e5e2dc;border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:10px}
 .license-exam-card h3{font-size:16px;color:#1f2328;margin:0}
 .license-exam-card .catalog-meta{font-size:12px}
-.license-exam-card a{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:6px;background:#1f2328;color:#fff;border-radius:8px;padding:11px;font-size:13px;font-weight:700}
+.license-exam-modes{margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.license-exam-modes a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#1f2328;color:#fff;border:1px solid #1f2328;border-radius:8px;padding:10px 8px;text-align:center}
+.license-exam-modes a b{font-size:13px;font-weight:700}
+.license-exam-modes a small{font-size:11px;opacity:.75;line-height:1.3}
+.license-exam-modes a.practice{background:#fff;color:#2f5577;border-color:#2f5577}
+.license-exam-modes a:hover{opacity:.9}
 
 .notebook-list{display:flex;flex-direction:column;gap:10px}
 .notebook-card{background:#fff;border:1px solid #efede8;border-radius:10px;padding:16px 18px}

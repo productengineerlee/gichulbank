@@ -22,8 +22,13 @@ type Outcome = { questionId: string; isCorrect: boolean; graduated: boolean };
 interface PracticeRunnerProps {
   questions: RunnerQuestion[];
   title: string;
-  mode: "review" | "daily";
+  mode: "review" | "daily" | "round";
   earlyPractice?: boolean;
+  /** 회차 연습 이어 풀기: 시작 위치와 이미 푼 문항의 정오 */
+  initialIndex?: number;
+  initialOutcomes?: { questionId: string; isCorrect: boolean }[];
+  /** 회차 연습을 처음부터 다시 시작하는 주소 */
+  restartHref?: string;
   /** 끝난 뒤 돌아갈 곳 */
   doneHref: string;
   doneLabel: string;
@@ -41,13 +46,13 @@ function reviewMessage(feedback: Feedback) {
   return `연속 정답 ${review.correctStreak}/${GRADUATION_STREAK} · ${days}일 후 다시 복습해요.`;
 }
 
-export function PracticeRunner({ questions, title, mode, earlyPractice = false, doneHref, doneLabel }: PracticeRunnerProps) {
-  const [index, setIndex] = useState(0);
+export function PracticeRunner({ questions, title, mode, earlyPractice = false, initialIndex = 0, initialOutcomes = [], restartHref, doneHref, doneLabel }: PracticeRunnerProps) {
+  const [index, setIndex] = useState(initialIndex);
   const [selected, setSelected] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [outcomes, setOutcomes] = useState<Outcome[]>([]);
+  const [outcomes, setOutcomes] = useState<Outcome[]>(() => initialOutcomes.map((item) => ({ ...item, graduated: false })));
   const shownAt = useRef(0);
 
   const question = questions[index];
@@ -91,7 +96,7 @@ export function PracticeRunner({ questions, title, mode, earlyPractice = false, 
     const graduated = outcomes.filter((item) => item.graduated).length;
     return <div className="practice-summary">
       <CheckCircle2 />
-      <h1>{mode === "daily" ? "오늘의 추천 문제 완료!" : "복습 완료!"}</h1>
+      <h1>{mode === "daily" ? "오늘의 추천 문제 완료!" : mode === "round" ? "연습 완료!" : "복습 완료!"}</h1>
       <p>{outcomes.length}문제 중 <b>{correct}문제</b>를 맞혔어요.</p>
       <div className="practice-summary-stats">
         <div><span>정답</span><b>{correct}</b></div>
@@ -100,7 +105,9 @@ export function PracticeRunner({ questions, title, mode, earlyPractice = false, 
       </div>
       <div className="practice-summary-actions">
         <Link href={doneHref}>{doneLabel}</Link>
-        {mode === "review" ? <button type="button" onClick={() => window.location.reload()}><RotateCcw />다시 복습하기</button> : <Link className="secondary" href="/review">오답노트 보기</Link>}
+        {mode === "review" && <button type="button" onClick={() => window.location.reload()}><RotateCcw />다시 복습하기</button>}
+        {mode === "round" && restartHref && <a className="secondary" href={restartHref}><RotateCcw />처음부터 다시 풀기</a>}
+        {mode !== "review" && <Link className="secondary" href="/review">오답노트 보기</Link>}
       </div>
     </div>;
   }
