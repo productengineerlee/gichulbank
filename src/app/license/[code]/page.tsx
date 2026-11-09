@@ -50,13 +50,13 @@ export default async function LicenseDetailPage({ params }: { params: Promise<{ 
             <p className="schedule-empty">등록된 시험 일정이 없습니다.</p>
           ) : (
             <div className="schedule-table">
-              <div className="schedule-row head"><span>회차</span><span>시험일</span><span>접수기간</span><span>비고</span></div>
+              <div className="schedule-row head"><span>회차</span><span>시험일</span><span>시험시간</span><span>접수기간</span></div>
               {cert.schedules.map((schedule) => (
                 <div className="schedule-row" key={schedule.id}>
                   <span>{schedule.roundName}</span>
                   <span>{formatDate(schedule.examDate)}</span>
-                  <span>{schedule.applyStart && schedule.applyEnd ? `${formatDate(schedule.applyStart)} ~ ${formatDate(schedule.applyEnd)}` : "미정"}</span>
                   <span>{schedule.notes ?? "-"}</span>
+                  <span>{schedule.applyStart && schedule.applyEnd ? `${formatDate(schedule.applyStart)} ~ ${formatDate(schedule.applyEnd)}` : "미정"}</span>
                 </div>
               ))}
             </div>

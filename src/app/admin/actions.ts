@@ -239,7 +239,7 @@ export async function deleteDiagnosticRuleAction(formData: FormData) {
   redirectMessage(returnTo, "saved", "진단 규칙을 삭제했습니다.");
 }
 
-type ScheduleInput = { certificationId: string; roundName: string; examDate: string | null; applyStart: string | null; applyEnd: string | null; notes: string | null; sortOrder: number };
+type ScheduleInput = { certificationId: string; roundName: string; examDate: string | null; applyStart: string | null; applyEnd: string | null; notes: string | null; memo: string | null; sortOrder: number };
 
 function scheduleInput(formData: FormData): ScheduleInput {
   const certificationId = text(formData, "certificationId");
@@ -249,7 +249,7 @@ function scheduleInput(formData: FormData): ScheduleInput {
   return {
     certificationId, roundName,
     examDate: nullable(formData, "examDate"), applyStart: nullable(formData, "applyStart"), applyEnd: nullable(formData, "applyEnd"),
-    notes: nullable(formData, "notes"), sortOrder: Math.round(sortOrder),
+    notes: nullable(formData, "notes"), memo: nullable(formData, "memo"), sortOrder: Math.round(sortOrder),
   };
 }
 
@@ -265,7 +265,7 @@ export async function createLicenseScheduleAction(formData: FormData) {
   const admin = createAdminClient();
   const { error } = await admin.from("certification_schedules").insert({
     certification_id: input.certificationId, round_name: input.roundName, exam_date: input.examDate,
-    apply_start: input.applyStart, apply_end: input.applyEnd, notes: input.notes, sort_order: input.sortOrder,
+    apply_start: input.applyStart, apply_end: input.applyEnd, notes: input.notes, memo: input.memo, sort_order: input.sortOrder,
   });
   if (error) redirectMessage(returnTo, "error", `일정 추가 실패: ${error.message}`);
   revalidateLicenseSchedules(text(formData, "certificationCode"));
@@ -280,7 +280,7 @@ export async function updateLicenseScheduleAction(formData: FormData) {
   const admin = createAdminClient();
   const { error } = await admin.from("certification_schedules").update({
     round_name: input.roundName, exam_date: input.examDate, apply_start: input.applyStart,
-    apply_end: input.applyEnd, notes: input.notes, sort_order: input.sortOrder,
+    apply_end: input.applyEnd, notes: input.notes, memo: input.memo, sort_order: input.sortOrder,
   }).eq("id", id);
   if (error) redirectMessage(returnTo, "error", `일정 저장 실패: ${error.message}`);
   revalidateLicenseSchedules(text(formData, "certificationCode"));

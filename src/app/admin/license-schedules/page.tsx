@@ -40,12 +40,13 @@ export default async function AdminLicenseSchedulesPage({ searchParams }: { sear
               </div>
               <div className="form-grid two">
                 <label><span>시험일</span><input type="date" name="examDate" defaultValue={schedule.exam_date ?? ""} /></label>
-                <label><span>비고</span><input type="text" name="notes" defaultValue={schedule.notes ?? ""} /></label>
+                <label><span>시험시간</span><input type="text" name="notes" defaultValue={schedule.notes ?? ""} placeholder="오전 10시" /></label>
               </div>
               <div className="form-grid two">
                 <label><span>접수 시작</span><input type="date" name="applyStart" defaultValue={schedule.apply_start ?? ""} /></label>
                 <label><span>접수 종료</span><input type="date" name="applyEnd" defaultValue={schedule.apply_end ?? ""} /></label>
               </div>
+              <label><span>비고 (관리자 메모, 사용자 화면에는 보이지 않음)</span><textarea name="memo" rows={2} defaultValue={schedule.memo ?? ""} /></label>
               <button className="admin-secondary"><Save />저장</button>
             </form>
             <form action={deleteLicenseScheduleAction} className="rule-delete-form">
@@ -68,12 +69,13 @@ export default async function AdminLicenseSchedulesPage({ searchParams }: { sear
             </div>
             <div className="form-grid two">
               <label><span>시험일</span><input type="date" name="examDate" /></label>
-              <label><span>비고</span><input type="text" name="notes" /></label>
+              <label><span>시험시간</span><input type="text" name="notes" placeholder="오전 10시" /></label>
             </div>
             <div className="form-grid two">
               <label><span>접수 시작</span><input type="date" name="applyStart" /></label>
               <label><span>접수 종료</span><input type="date" name="applyEnd" /></label>
             </div>
+            <label><span>비고 (관리자 메모, 사용자 화면에는 보이지 않음)</span><textarea name="memo" rows={2} /></label>
             <button className="admin-primary"><Plus />일정 추가</button>
           </form>
         </details>

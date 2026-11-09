@@ -24,7 +24,7 @@ export interface Database {
       diagnostic_rules: Table<{ id: string; section_code: string | null; competency_tag: string | null; min_percentage: number; max_percentage: number; level: string; comment: string; recommendation: string | null; priority: number; is_active: boolean }>;
       theory_content: Table<{ id: string; section_code: string; competency_tag: string | null; title: string; body: string; sort_order: number; is_active: boolean; created_at: string; updated_at: string }>;
       certifications: Table<{ id: string; code: string; name: string; description: string | null; is_active: boolean; sort_order: number; created_at: string }>;
-      certification_schedules: Table<{ id: string; certification_id: string; round_name: string; exam_date: string | null; apply_start: string | null; apply_end: string | null; notes: string | null; sort_order: number; created_at: string }>;
+      certification_schedules: Table<{ id: string; certification_id: string; round_name: string; exam_date: string | null; apply_start: string | null; apply_end: string | null; notes: string | null; memo: string | null; sort_order: number; created_at: string }>;
       question_stat_seed: Table<{ question_id: string; attempt_count: number; correct_count: number }>;
       qna_posts: Table<{ id: string; user_id: string; certification_id: string | null; title: string; content: string; is_active: boolean; created_at: string; updated_at: string }>;
       qna_comments: Table<{ id: string; post_id: string; user_id: string; content: string; is_active: boolean; created_at: string; updated_at: string }>;
