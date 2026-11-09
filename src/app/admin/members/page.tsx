@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, UserPlus, Users } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { kstDateTime, kstDay, listAllUsers } from "@/lib/admin-users";
+import { fetchAll, withRetry } from "@/lib/supabase/paging";
 
 const PAGE_SIZE = 10;
 const NO_ATTEMPT = "미응시";
@@ -9,26 +10,15 @@ const providerLabel: Record<string, string> = { email: "이메일", google: "Goo
 
 async function loadMembers() {
   const admin = createAdminClient();
-  // Supabase 는 한 번에 최대 1,000행만 돌려주므로 응시 기록은 나눠 읽는다
-  const loadAllAttempts = async () => {
-    const rows: { user_id: string; exam_id: string; started_at: string }[] = [];
-    for (let from = 0; ; from += 1000) {
-      const { data, error } = await admin.from("attempts").select("user_id,exam_id,started_at")
-        .order("started_at", { ascending: true }).order("id", { ascending: true }).range(from, from + 999);
-      if (error || !data) throw new Error("응시 기록을 불러오지 못했습니다.");
-      rows.push(...data);
-      if (data.length < 1000) return rows;
-    }
-  };
-  const [users, attempts, examsResult, certsResult] = await Promise.all([
+  // Supabase 는 한 번에 최대 1,000행만 돌려주므로 응시 기록은 나눠 읽는다(일시 오류는 다시 시도).
+  const [users, attempts, exams, certs] = await Promise.all([
     listAllUsers(admin),
-    loadAllAttempts(),
-    admin.from("exams").select("id,certification_id"),
-    admin.from("certifications").select("id,name,sort_order"),
+    fetchAll<{ user_id: string; exam_id: string; started_at: string }>((from, to) => admin.from("attempts").select("user_id,exam_id,started_at")
+      .order("started_at", { ascending: true }).order("id", { ascending: true }).range(from, to), "응시 기록을 불러오지 못했습니다."),
+    withRetry("exams", () => admin.from("exams").select("id,certification_id"), "시험 정보를 불러오지 못했습니다."),
+    withRetry("certifications", () => admin.from("certifications").select("id,name,sort_order"), "시험 정보를 불러오지 못했습니다."),
   ]);
-  const { data: exams } = examsResult;
-  const { data: certs } = certsResult;
-  if (examsResult.error || certsResult.error || !exams || !certs) throw new Error("시험 정보를 불러오지 못했습니다.");
+  if (!exams || !certs) throw new Error("시험 정보를 불러오지 못했습니다.");
 
   const certIdByExamId = new Map(exams.map((exam) => [exam.id, exam.certification_id]));
   const certNameById = new Map(certs.map((cert) => [cert.id, cert.name]));

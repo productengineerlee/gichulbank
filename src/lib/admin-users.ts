@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { createAdminClient } from "@/lib/supabase/admin";
+import { withRetry } from "@/lib/supabase/paging";
 
 export type AdminUser = { id: string; email: string | null; createdAt: string; lastSignInAt: string | null; provider: string };
 
@@ -8,16 +9,17 @@ export type AdminUser = { id: string; email: string | null; createdAt: string; l
 export async function listAllUsers(admin: ReturnType<typeof createAdminClient>) {
   const users: AdminUser[] = [];
   for (let page = 1; ; page++) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
-    if (error) throw new Error("회원 정보를 불러오지 못했습니다.");
-    users.push(...data.users.map((user) => ({
+    const pageUsers = await withRetry(`auth.listUsers page ${page}`,
+      () => admin.auth.admin.listUsers({ page, perPage: 1000 }).then(({ data, error }) => ({ data: data.users, error })),
+      "회원 정보를 불러오지 못했습니다.");
+    users.push(...pageUsers.map((user) => ({
       id: user.id,
       email: user.email ?? null,
       createdAt: user.created_at,
       lastSignInAt: user.last_sign_in_at ?? null,
       provider: String(user.app_metadata?.provider ?? "email"),
     })));
-    if (data.users.length < 1000) break;
+    if (pageUsers.length < 1000) break;
   }
   return users;
 }
