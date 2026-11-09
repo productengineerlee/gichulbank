@@ -1,11 +1,12 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { AlertTriangle, Bookmark, ChevronLeft, ChevronRight, Clock3, FileQuestion, Menu, Save, Send, X } from "lucide-react";
+import { AlertTriangle, Bookmark, ChevronLeft, ChevronRight, ClipboardList, Clock3, FileQuestion, Files, Save, Send, SquareStack, X } from "lucide-react";
 import type { PublicExam } from "@/lib/exams";
 import { PromptText } from "@/components/prompt-text";
 import { examSource } from "@/lib/exam-source";
+import { OmrSheet } from "@/components/exams/omr-sheet";
 
 type Stored = {
   attemptId?: string;
@@ -25,6 +26,17 @@ type RemoteAttempt = {
   flagged: number[];
 };
 type SaveState = "preparing" | "saving" | "saved" | "local";
+type Layout = "sheet" | "single";
+
+const LAYOUT_KEY = "exam-layout";
+const WIDE_QUERY = "(min-width: 1024px)";
+// 문제지+OMR 두 칸 화면은 넓은 화면에서만 쓴다. 좁은 화면은 한 문제씩 보기 + 아래에서 올라오는 OMR.
+function subscribeWide(onChange: () => void) {
+  const media = window.matchMedia(WIDE_QUERY);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+const isWide = () => window.matchMedia(WIDE_QUERY).matches;
 
 function formatTime(seconds: number) {
   const safe = Math.max(0, seconds);
@@ -33,7 +45,9 @@ function formatTime(seconds: number) {
 
 
 export function ExamRunner({ exam }: { exam: PublicExam }) {
-  const key = `aice-attempt:${exam.slug}:v1`;
+  const key = `exam-attempt:${exam.slug}:v1`;
+  // 예전 저장 키(이름만 바뀜)에 남은 임시 답안도 이어서 읽는다.
+  const legacyKey = `aice-attempt:${exam.slug}:v1`;
   const [ready, setReady] = useState(false);
   const [startError, setStartError] = useState("");
   const [attemptId, setAttemptId] = useState("");
@@ -45,6 +59,9 @@ export function ExamRunner({ exam }: { exam: PublicExam }) {
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [saveState, setSaveState] = useState<SaveState>("preparing");
   const [navOpen, setNavOpen] = useState(false);
+  const [layoutPref, setLayoutPref] = useState<Layout>("sheet");
+  const wide = useSyncExternalStore(subscribeWide, isWide, () => false);
+  const sheetMode = wide && layoutPref === "sheet";
   const [showSubmit, setShowSubmit] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -60,8 +77,9 @@ export function ExamRunner({ exam }: { exam: PublicExam }) {
     async function initialize() {
       let local: Stored | null = null;
       try {
-        const raw = localStorage.getItem(key);
+        const raw = localStorage.getItem(key) ?? localStorage.getItem(legacyKey);
         if (raw) local = JSON.parse(raw) as Stored;
+        if (localStorage.getItem(LAYOUT_KEY) === "single") setLayoutPref("single");
       } catch { /* Ignore a damaged local fallback. */ }
 
       try {
@@ -91,7 +109,7 @@ export function ExamRunner({ exam }: { exam: PublicExam }) {
     }
     initialize();
     return () => { cancelled = true; };
-  }, [exam.questions.length, exam.slug, key]);
+  }, [exam.questions.length, exam.slug, key, legacyKey]);
 
   useEffect(() => {
     if (!ready || !deadline) return;
@@ -158,18 +176,36 @@ export function ExamRunner({ exam }: { exam: PublicExam }) {
 
   const progress = useMemo(() => Math.round(answered / exam.questionCount * 100), [answered, exam.questionCount]);
 
-  function setAnswer(value: string) {
-    setAnswers((currentAnswers) => ({ ...currentAnswers, [String(question.number)]: value }));
+  const locked = remaining === 0 || submitting;
+  function answerFor(number: number, value: string) {
+    setAnswers((currentAnswers) => ({ ...currentAnswers, [String(number)]: value }));
+  }
+  function toggleFlagFor(number: number) {
+    setFlagged((currentFlags) => currentFlags.includes(number)
+      ? currentFlags.filter((item) => item !== number)
+      : [...currentFlags, number]);
   }
   function toggleFlag() {
-    setFlagged((currentFlags) => currentFlags.includes(question.number)
-      ? currentFlags.filter((number) => number !== question.number)
-      : [...currentFlags, question.number]);
+    toggleFlagFor(question.number);
   }
   function move(index: number) {
-    setCurrent(Math.max(0, Math.min(index, exam.questions.length - 1)));
+    const next = Math.max(0, Math.min(index, exam.questions.length - 1));
+    setCurrent(next);
     setNavOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (sheetMode) {
+      document.getElementById(`sheet-q${exam.questions[next].number}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+  function changeLayout(next: Layout) {
+    setLayoutPref(next);
+    try { localStorage.setItem(LAYOUT_KEY, next); } catch { /* 저장 못 해도 이번 화면에는 적용된다. */ }
+    window.scrollTo({ top: 0 });
+  }
+  function resetAnswers() {
+    if (locked || !answered) return;
+    if (window.confirm("입력한 답안을 모두 지울까요? 검토 표시는 그대로 둡니다.")) setAnswers({});
   }
 const finish = useCallback(async () => {
     if (!attemptId || submissionLock.current) return;
@@ -193,7 +229,7 @@ const finish = useCallback(async () => {
         return;
       }
       if (!response.ok) throw new Error(`${result.error ?? "채점에 실패했습니다."}${result.requestId ? ` (오류 ID: ${result.requestId})` : ""}`);
-      localStorage.setItem(`aice-result:${exam.slug}:latest`, JSON.stringify(result));
+      localStorage.setItem(`exam-result:${exam.slug}:latest`, JSON.stringify(result));
       const stored: Stored = { attemptId, answers, flagged, current, deadline, updatedAt: Date.now(), status: "submitted" };
       localStorage.setItem(key, JSON.stringify(stored));
       window.location.href = `/exams/${exam.slug}/result?attemptId=${attemptId}`;
@@ -223,5 +259,70 @@ const finish = useCallback(async () => {
         ? "로컬 저장됨 · 서버 재시도"
         : "저장 준비 중";
 
-  return <main className="runner"><header className="runner-header"><div className="runner-brand"><Link href="/" aria-label="랜딩 페이지"><Image src="/mascot.png" alt="기출뱅크" width={28} height={28} className="brand-mark"/><b>기출뱅크</b></Link><span>{exam.title}</span></div><div className="runner-header-actions"><Link className="sample-link" href="/license"><FileQuestion/><span>기출문제</span></Link><div className={`timer ${remaining < 300 ? "danger" : ""}`}><Clock3/><span>남은 시간</span><b>{formatTime(remaining)}</b></div><button className="nav-toggle" onClick={() => setNavOpen(true)} aria-label="문항 목록"><Menu/></button></div></header><div className="runner-progress"><i style={{ width: `${progress}%` }}></i></div><div className="runner-layout"><aside className={navOpen ? "open" : ""}><div className="aside-head"><div><span>답안 현황</span><b>{answered} / {exam.questionCount}</b></div><button onClick={() => setNavOpen(false)}><X/></button></div><div className="number-grid">{exam.questions.map((item, index) => <button key={item.number} onClick={() => move(index)} className={`${index === current ? "current" : ""} ${answers[String(item.number)] ? "answered" : ""} ${flagged.includes(item.number) ? "flagged" : ""}`}><span>{item.number}</span>{flagged.includes(item.number) && <Bookmark/>}</button>)}</div><div className="legend"><span><i className="done"></i>답변 완료</span><span><i className="flag"></i>검토 표시</span></div><div className="autosave"><Save/><div><b>자동 저장</b><span>{saveCopy}</span></div></div></aside><section className="question-area"><div className="question-top"><div><span className="section-label">{sectionTitleByCode.get(question.section) ?? question.section}</span><span className="score-label">{question.score}점</span></div><button className={flagged.includes(question.number) ? "active" : ""} onClick={toggleFlag}><Bookmark/>검토 표시</button></div><div className="question-number">문제 {question.number}<small> / {exam.questionCount}</small></div><PromptText className="question-prompt" prompt={question.prompt}/>{question.imageUrl && <img className="question-image" src={question.imageUrl} alt={`문제 ${question.number} 참고 이미지`}/>}<div className="answer-area">{question.choices.length > 0 ? question.choices.map((choice) => <label className={`choice ${answers[String(question.number)] === choice.id ? "selected" : ""}`} key={choice.id}><input type="radio" name={`q-${question.number}`} value={choice.id} checked={answers[String(question.number)] === choice.id} disabled={remaining === 0 || submitting} onChange={() => setAnswer(choice.id)}/><span className="choice-label">{choice.label}</span><span>{choice.content}</span></label>) : <label className="text-answer"><span>답안 입력</span><input inputMode={question.type === "text" ? "text" : "decimal"} value={answers[String(question.number)] ?? ""} disabled={remaining === 0 || submitting} onChange={(event) => setAnswer(event.target.value)} placeholder={question.type === "unit_value" ? "예: 12.9k" : "정답을 입력하세요"}/><small>문제에서 안내한 반올림 및 단위 형식을 지켜 입력하세요.</small></label>}</div><div className="question-actions"><button disabled={current === 0} onClick={() => move(current - 1)}><ChevronLeft/>이전 문제</button>{current < exam.questions.length - 1 ? <button className="next" onClick={() => move(current + 1)}>다음 문제<ChevronRight/></button> : <button className="submit" onClick={() => setShowSubmit(true)}>답안 제출<Send/></button>}</div>{source && <p className="exam-source-note">{source.text}</p>}</section></div>{showSubmit && <div className="modal-backdrop"><div className="submit-modal"><AlertTriangle/><h2>{remaining === 0 ? "시험 시간이 종료되었습니다" : "답안을 제출할까요?"}</h2><p>총 {exam.questionCount}문항 중 <b>{answered}문항</b>에 답했습니다. 미응답 {exam.questionCount - answered}문항이 있습니다.</p>{submitError && <p className="submit-error">{submitError}</p>}<div><button onClick={() => setShowSubmit(false)} disabled={remaining === 0 || submitting}>계속 풀기</button><button className="confirm" onClick={() => void finish()} disabled={submitting}>{submitting ? "채점·저장 중..." : submitError ? "다시 제출" : "최종 제출"}</button></div></div></div>}</main>;
+  const renderChoices = (item: typeof question) => item.choices.length > 0
+    ? item.choices.map((choice) => <label className={`choice ${answers[String(item.number)] === choice.id ? "selected" : ""}`} key={choice.id}>
+      <input type="radio" name={`q-${item.number}`} value={choice.id} checked={answers[String(item.number)] === choice.id} disabled={locked} onChange={() => { answerFor(item.number, choice.id); setCurrent(exam.questions.indexOf(item)); }}/>
+      <span className="choice-label">{choice.label}</span><span>{choice.content}</span>
+    </label>)
+    : <label className="text-answer"><span>답안 입력</span><input inputMode={item.type === "text" ? "text" : "decimal"} value={answers[String(item.number)] ?? ""} disabled={locked} onChange={(event) => answerFor(item.number, event.target.value)} placeholder={item.type === "unit_value" ? "예: 12.9k" : "정답을 입력하세요"}/><small>문제에서 안내한 반올림 및 단위 형식을 지켜 입력하세요.</small></label>;
+
+  const omr = <OmrSheet questions={exam.questions} answers={answers} flagged={flagged} current={sheetMode ? undefined : current} disabled={locked} onPick={answerFor} onJump={move} />;
+  const autosave = <div className="autosave"><Save/><div><b>자동 저장</b><span>{saveCopy}</span></div></div>;
+
+  return <main className={`runner ${sheetMode ? "sheet-mode" : ""}`}>
+    <header className="runner-header">
+      <div className="runner-brand"><Link href="/" aria-label="랜딩 페이지"><Image src="/mascot.png" alt="기출뱅크" width={28} height={28} className="brand-mark"/><b>기출뱅크</b></Link><span>{exam.title}</span></div>
+      <div className="runner-header-actions">
+        {wide && <button type="button" className="layout-toggle" onClick={() => changeLayout(sheetMode ? "single" : "sheet")}>{sheetMode ? <><SquareStack/>한 문제씩 보기</> : <><Files/>문제지로 보기</>}</button>}
+        <Link className="sample-link" href="/license"><FileQuestion/><span>기출문제</span></Link>
+        <div className={`timer ${remaining < 300 ? "danger" : ""}`}><Clock3/><span>남은 시간</span><b>{formatTime(remaining)}</b></div>
+      </div>
+    </header>
+    <div className="runner-progress"><i style={{ width: `${progress}%` }}></i></div>
+
+    {sheetMode ? <div className="sheet-layout">
+      <section className="sheet-paper">
+        {exam.questions.map((item) => <article className="sheet-question" id={`sheet-q${item.number}`} key={item.number}>
+          <div className="question-top">
+            <div><b className="sheet-number">{item.number}.</b><span className="section-label">{sectionTitleByCode.get(item.section) ?? item.section}</span><span className="score-label">{item.score}점</span></div>
+            <button className={flagged.includes(item.number) ? "active" : ""} onClick={() => toggleFlagFor(item.number)}><Bookmark/>검토 표시</button>
+          </div>
+          <PromptText className="question-prompt" prompt={item.prompt}/>
+          {item.imageUrl && <img className="question-image" src={item.imageUrl} alt={`문제 ${item.number} 참고 이미지`}/>}
+          <div className="answer-area">{renderChoices(item)}</div>
+        </article>)}
+        {source && <p className="exam-source-note">{source.text}</p>}
+      </section>
+      <aside className="omr-panel">
+        <div className="omr-head"><h2>답안 입력 (1–{exam.questionCount})</h2><p>왼쪽 문제지를 보며 답을 선택하세요.</p></div>
+        <div className="omr-scroll">{omr}</div>
+        <div className="omr-foot">
+          <p>{answered} / {exam.questionCount} 답안 입력 ({progress}%)</p>
+          <button type="button" className="omr-submit" onClick={() => setShowSubmit(true)} disabled={locked}>답안 제출</button>
+          <button type="button" className="omr-reset" onClick={resetAnswers} disabled={locked || !answered}>초기화</button>
+          {autosave}
+        </div>
+      </aside>
+    </div> : <div className="runner-layout">
+      {navOpen && <button type="button" className="omr-backdrop" aria-label="답안지 닫기" onClick={() => setNavOpen(false)} />}
+      <aside className={navOpen ? "open" : ""}>
+        <div className="aside-head"><div><span>OMR 답안지</span><b>{answered} / {exam.questionCount}</b></div><button onClick={() => setNavOpen(false)} aria-label="답안지 닫기"><X/></button></div>
+        <div className="omr-scroll">{omr}</div>
+        <div className="legend"><span><i className="flag"></i>검토 표시</span><span>번호를 누르면 그 문제로 이동</span></div>
+        {autosave}
+      </aside>
+      <section className="question-area">
+        <div className="question-top"><div><span className="section-label">{sectionTitleByCode.get(question.section) ?? question.section}</span><span className="score-label">{question.score}점</span></div><button className={flagged.includes(question.number) ? "active" : ""} onClick={toggleFlag}><Bookmark/>검토 표시</button></div>
+        <div className="question-number">문제 {question.number}<small> / {exam.questionCount}</small></div>
+        <PromptText className="question-prompt" prompt={question.prompt}/>
+        {question.imageUrl && <img className="question-image" src={question.imageUrl} alt={`문제 ${question.number} 참고 이미지`}/>}
+        <div className="answer-area">{renderChoices(question)}</div>
+        <div className="question-actions"><button disabled={current === 0} onClick={() => move(current - 1)}><ChevronLeft/>이전 문제</button>{current < exam.questions.length - 1 ? <button className="next" onClick={() => move(current + 1)}>다음 문제<ChevronRight/></button> : <button className="submit" onClick={() => setShowSubmit(true)}>답안 제출<Send/></button>}</div>
+        {source && <p className="exam-source-note">{source.text}</p>}
+      </section>
+      <button type="button" className="omr-fab" onClick={() => setNavOpen(true)}><ClipboardList/>OMR 답안지 <b>{answered}/{exam.questionCount}</b></button>
+    </div>}
+
+    {showSubmit && <div className="modal-backdrop"><div className="submit-modal"><AlertTriangle/><h2>{remaining === 0 ? "시험 시간이 종료되었습니다" : "답안을 제출할까요?"}</h2><p>총 {exam.questionCount}문항 중 <b>{answered}문항</b>에 답했습니다. 미응답 {exam.questionCount - answered}문항이 있습니다.</p>{submitError && <p className="submit-error">{submitError}</p>}<div><button onClick={() => setShowSubmit(false)} disabled={remaining === 0 || submitting}>계속 풀기</button><button className="confirm" onClick={() => void finish()} disabled={submitting}>{submitting ? "채점·저장 중..." : submitError ? "다시 제출" : "최종 제출"}</button></div></div></div>}
+  </main>;
 }
