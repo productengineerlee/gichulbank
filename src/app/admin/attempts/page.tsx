@@ -4,7 +4,6 @@ import { kstDateTime, listAllUsers } from "@/lib/admin-users";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { AttemptStatus } from "@/types/database";
 
-const AICE_LABEL = "AICE";
 const statusLabel: Record<AttemptStatus, string> = {
   in_progress: "진행중",
   expired: "시간종료",
@@ -40,7 +39,7 @@ async function loadAttempts() {
 
   return attempts.map((attempt) => {
     const exam = examById.get(attempt.exam_id);
-    const certName = exam?.certification_id ? (certNameById.get(exam.certification_id) ?? "알 수 없음") : AICE_LABEL;
+    const certName = exam?.certification_id ? (certNameById.get(exam.certification_id) ?? "알 수 없음") : "알 수 없음";
     return {
       id: attempt.id,
       email: emailByUserId.get(attempt.user_id) ?? "탈퇴한 회원",
@@ -79,7 +78,7 @@ export default async function AdminAttemptsPage({ searchParams }: { searchParams
 
   return <main className="admin-content">
     <header className="admin-page-head compact">
-      <div><span>MEMBER ACTIVITY</span><h1>전체 응시 현황</h1><p>회원이 응시한 AICE·자격증 시험 기록을 한 곳에서 확인합니다.</p></div>
+      <div><span>MEMBER ACTIVITY</span><h1>전체 응시 현황</h1><p>회원이 응시한 자격증 시험 기록을 한 곳에서 확인합니다.</p></div>
     </header>
 
     <section className="admin-stats">

@@ -4,7 +4,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { kstDateTime, kstDay, listAllUsers } from "@/lib/admin-users";
 
 const PAGE_SIZE = 10;
-const AICE_LABEL = "AICE";
 const NO_ATTEMPT = "미응시";
 const providerLabel: Record<string, string> = { email: "이메일", google: "Google", kakao: "카카오", naver: "네이버" };
 
@@ -35,7 +34,7 @@ async function loadMembers() {
   const certNameById = new Map(certs.map((cert) => [cert.id, cert.name]));
   const courseOfExam = (examId: string) => {
     const certId = certIdByExamId.get(examId);
-    return certId ? (certNameById.get(certId) ?? "알 수 없음") : AICE_LABEL;
+    return certId ? (certNameById.get(certId) ?? "알 수 없음") : "알 수 없음";
   };
 
   // 응시 기록이 시작 순으로 정렬돼 있으므로 회원별 첫 기록이 첫 응시 과정이다
@@ -48,9 +47,9 @@ async function loadMembers() {
   const members = users
     .map((user) => ({ ...user, attemptCount: attemptCountByUserId.get(user.id) ?? 0, course: firstCourseByUserId.get(user.id) ?? NO_ATTEMPT }))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  // 과정 순서: 자격증 정렬 순서 → AICE → 그 밖 → 미응시
+  // 과정 순서: 자격증 정렬 순서 → 그 밖 → 미응시
   const certOrder = new Map(certs.map((cert) => [cert.name, cert.sort_order ?? 0]));
-  const courseRank = (course: string) => course === NO_ATTEMPT ? 3 : certOrder.has(course) ? 0 : course === AICE_LABEL ? 1 : 2;
+  const courseRank = (course: string) => course === NO_ATTEMPT ? 2 : certOrder.has(course) ? 0 : 1;
   const courseSort = (a: string, b: string) => courseRank(a) - courseRank(b) || (certOrder.get(a) ?? 0) - (certOrder.get(b) ?? 0) || a.localeCompare(b, "ko");
   return { members, courseSort, now: Date.now() };
 }

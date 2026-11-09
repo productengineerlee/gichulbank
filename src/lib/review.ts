@@ -50,7 +50,7 @@ type ExamRow = { id: string; slug: string; title: string; certification_id: stri
 type CertRow = { id: string; code: string; name: string; sort_order: number };
 type Joined = { review: ReviewRow; question: QuestionRow; exam: ExamRow; cert: CertRow };
 
-/** 회원의 오답 행 전체를 문항·회차·자격증과 묶어서 가져온다. 자격증에 속하지 않는(AICE) 문항은 제외. */
+/** 회원의 오답 행 전체를 문항·회차·자격증과 묶어서 가져온다. 자격증에 속하지 않는 문항은 제외. */
 async function loadJoinedReviews(admin: AdminClient, userId: string): Promise<{ joined: Joined[]; certs: CertRow[] }> {
   const reviews: ReviewRow[] = await fetchAll((from, to) => admin
     .from("review_items")

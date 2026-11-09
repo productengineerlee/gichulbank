@@ -40,7 +40,6 @@ function legacyComment(p: number) {
   if (p >= 40) return "핵심 개념은 일부 이해했습니다. 오답 해설과 같은 유형을 반복해 보세요.";
   return "기초 개념부터 다시 정리하고 같은 유형의 기출문제를 반복해 보세요.";
 }
-const sectionShortLabel: Record<string, string> = { eda: "데이터 분석", preprocessing: "전처리", modeling: "모델링", evaluation: "성능평가" };
 
 export function ResultView({ slug }: { slug: string }) {
   const [result, setResult] = useState<GradingResult | null>(null);
@@ -53,7 +52,7 @@ export function ResultView({ slug }: { slug: string }) {
     let cancelled = false;
     const attemptId = new URLSearchParams(window.location.search).get("attemptId");
     try {
-      const cached = localStorage.getItem(`aice-result:${slug}:latest`);
+      const cached = localStorage.getItem(`exam-result:${slug}:latest`);
       if (cached) {
         const parsedCached = JSON.parse(cached) as GradingResult;
         // Only trust the cache if it's for the attempt actually being requested — otherwise a
@@ -65,7 +64,7 @@ export function ResultView({ slug }: { slug: string }) {
     const query = attemptId ? `?attemptId=${encodeURIComponent(attemptId)}` : "";
     fetch(`/api/exams/${slug}/result${query}`, { cache: "no-store" })
       .then(async response => { if (!response.ok) throw new Error("result unavailable"); return response.json() as Promise<GradingResult>; })
-      .then(remote => { if (cancelled) return; setResult(remote); setLoadError(false); localStorage.setItem(`aice-result:${slug}:latest`, JSON.stringify(remote)); })
+      .then(remote => { if (cancelled) return; setResult(remote); setLoadError(false); localStorage.setItem(`exam-result:${slug}:latest`, JSON.stringify(remote)); })
       .catch(() => { if (!cancelled) setLoadError(true); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
@@ -88,7 +87,7 @@ export function ResultView({ slug }: { slug: string }) {
     <section className="result-container">{reviewSavedCount > 0 && <Link className="review-saved-note" href={`/review?cert=${result.certificationCode}`}><BookX /><span>틀린 문제 <b>{reviewSavedCount}개</b>가 오답노트에 저장됐어요</span><em>오답노트 보기<ArrowRight /></em></Link>}
       <div className="result-grid">
         <article className="result-card"><h2>영역별 점수</h2><div className="section-bars">{result.sections.map(section => <div key={section.code}><b>{section.earnedScore}<small>/{section.maxScore}</small></b><div className="bar-track"><i style={section.percentage > 0 ? { height: `${Math.max(section.percentage, 4)}%` } : { height: 0 }} /></div><span>{section.title}</span></div>)}</div></article>
-        <article className="result-card radar-card"><h2>영역별 역량 균형</h2><Radar values={result.sections.map(section => section.percentage)} labels={result.sections.map(section => sectionShortLabel[section.code] ?? section.title)} /><div className="radar-labels">{result.sections.map(section => <span key={section.code}>{section.title}<b>{section.percentage}%</b></span>)}</div></article>
+        <article className="result-card radar-card"><h2>영역별 역량 균형</h2><Radar values={result.sections.map(section => section.percentage)} labels={result.sections.map(section => section.title)} /><div className="radar-labels">{result.sections.map(section => <span key={section.code}>{section.title}<b>{section.percentage}%</b></span>)}</div></article>
       </div>
 
       <section className="competency-section"><div className="diagnostic-heading"><div><h2>영역별 진단</h2><p>영역별 정답과 배점을 기준으로 강점과 보강 방법을 안내합니다.</p></div></div><div className="competency-grid">{result.sections.map(section => { const diagnostic = sectionDiagnostics.get(section.code); const level = diagnostic?.level ?? "developing"; return <article className={`competency-card level-${level}`} key={section.code}><div className="competency-top"><div><span>{levelLabel[level]}</span><h3>{section.title}</h3></div><b>{section.percentage}<small>%</small></b></div><div className="competency-meter"><i style={{ width: `${section.percentage}%` }} /></div><small className="competency-count">정답 {section.correctCount}/{section.questionCount} · {section.earnedScore}/{section.maxScore}점</small><p>{diagnostic?.comment ?? legacyComment(section.percentage)}</p><p className="action-line"><b>보강 방법</b>{diagnostic?.recommendation ?? "오답 해설을 확인하고 같은 유형을 다시 풀어보세요."}</p></article>; })}</div></section>

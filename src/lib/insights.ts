@@ -83,7 +83,7 @@ export async function loadLearningInsights(userId: string, certCode: string): Pr
   for (const answer of answers) {
     const question = questionById.get(answer.questionId);
     const certId = question ? certIdByExam.get(question.exam_id) : undefined;
-    if (!question || !certId) continue; // AICE 등 자격증에 속하지 않는 문항은 제외
+    if (!question || !certId) continue; // 자격증에 속하지 않는 문항은 제외
     const agg = byCert.get(certId) ?? { answered: 0, correct: 0, practice: 0, sections: new Map(), tags: new Map() };
     agg.answered += 1;
     agg.correct += answer.isCorrect ? 1 : 0;

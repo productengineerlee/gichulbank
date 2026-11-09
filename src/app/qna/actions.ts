@@ -9,8 +9,8 @@ function text(formData: FormData, key: string) {
 }
 
 async function resolveCertificationId(supabase: Awaited<ReturnType<typeof createClient>>, categoryCode: string) {
-  // "general"(일반)은 특정 자격증에 속하지 않는 글. "aice-basic"은 이전 버전 폼 호환용.
-  if (!categoryCode || categoryCode === "general" || categoryCode === "aice-basic") return null;
+  // "general"(일반)은 특정 자격증에 속하지 않는 글.
+  if (!categoryCode || categoryCode === "general") return null;
   const { data: cert } = await supabase.from("certifications").select("id").eq("code", categoryCode).maybeSingle();
   return cert?.id ?? null;
 }

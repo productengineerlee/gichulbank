@@ -66,10 +66,10 @@ try {
   if (postErr) throw new Error("A insert post failed: " + postErr.message);
   console.log("A created post:", post.id);
 
-  // A creates a post tagged AICE BASIC (certification_id null)
-  const { data: basicPost, error: basicErr } = await a.client.from("qna_posts").insert({ user_id: a.userId, certification_id: null, title: "AICE BASIC 질문", content: "베이직 내용" }).select("id").single();
-  if (basicErr) throw new Error("A insert AICE BASIC post failed: " + basicErr.message);
-  console.log("A created AICE BASIC post:", basicPost.id);
+  // A creates a post tagged 일반 (certification_id null)
+  const { data: basicPost, error: basicErr } = await a.client.from("qna_posts").insert({ user_id: a.userId, certification_id: null, title: "일반 질문", content: "일반 내용" }).select("id").single();
+  if (basicErr) throw new Error("A insert general post failed: " + basicErr.message);
+  console.log("A created general post:", basicPost.id);
 
   // B can read A's post
   const { data: readByB, error: readErr } = await b.client.from("qna_posts").select("id,title").eq("id", post.id).maybeSingle();

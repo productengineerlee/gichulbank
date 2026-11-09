@@ -239,63 +239,6 @@ export async function deleteDiagnosticRuleAction(formData: FormData) {
   redirectMessage(returnTo, "saved", "진단 규칙을 삭제했습니다.");
 }
 
-type TheoryInput = { sectionCode: string; competencyTag: string | null; title: string; body: string; sortOrder: number; isActive: boolean };
-
-function theoryInput(formData: FormData): TheoryInput {
-  const sectionCode = text(formData, "sectionCode");
-  const competencyTag = nullable(formData, "competencyTag");
-  const title = text(formData, "title");
-  const body = text(formData, "body");
-  const sortOrder = numberValue(formData, "sortOrder");
-  if (!sectionCode || !title || !body) throw new Error("영역·제목·본문을 모두 입력해 주세요.");
-  return { sectionCode, competencyTag, title, body, sortOrder: Math.round(sortOrder), isActive: formData.get("isActive") === "on" };
-}
-
-function revalidateTheory() {
-  revalidatePath("/admin/theory");
-  revalidatePath("/theory");
-}
-
-export async function createTheoryContentAction(formData: FormData) {
-  await assertAdminAction();
-  const returnTo = resolveReturnTo(formData, "/admin/theory");
-  const input = parseOrRedirect(returnTo, () => theoryInput(formData));
-  const admin = createAdminClient();
-  const { error } = await admin.from("theory_content").insert({
-    section_code: input.sectionCode, competency_tag: input.competencyTag,
-    title: input.title, body: input.body, sort_order: input.sortOrder, is_active: input.isActive,
-  });
-  if (error) redirectMessage(returnTo, "error", `핵심이론 추가 실패: ${error.message}`);
-  revalidateTheory();
-  redirectMessage(returnTo, "saved", "새 핵심이론을 추가했습니다.");
-}
-
-export async function updateTheoryContentAction(formData: FormData) {
-  await assertAdminAction();
-  const id = text(formData, "id");
-  const returnTo = resolveReturnTo(formData, "/admin/theory");
-  const input = parseOrRedirect(returnTo, () => theoryInput(formData));
-  const admin = createAdminClient();
-  const { error } = await admin.from("theory_content").update({
-    section_code: input.sectionCode, competency_tag: input.competencyTag,
-    title: input.title, body: input.body, sort_order: input.sortOrder, is_active: input.isActive,
-  }).eq("id", id);
-  if (error) redirectMessage(returnTo, "error", `핵심이론 저장 실패: ${error.message}`);
-  revalidateTheory();
-  redirectMessage(returnTo, "saved", "핵심이론을 저장했습니다.");
-}
-
-export async function deleteTheoryContentAction(formData: FormData) {
-  await assertAdminAction();
-  const admin = createAdminClient();
-  const id = text(formData, "id");
-  const returnTo = resolveReturnTo(formData, "/admin/theory");
-  const { error } = await admin.from("theory_content").delete().eq("id", id);
-  if (error) redirectMessage(returnTo, "error", `핵심이론 삭제 실패: ${error.message}`);
-  revalidateTheory();
-  redirectMessage(returnTo, "saved", "핵심이론을 삭제했습니다.");
-}
-
 type ScheduleInput = { certificationId: string; roundName: string; examDate: string | null; applyStart: string | null; applyEnd: string | null; notes: string | null; sortOrder: number };
 
 function scheduleInput(formData: FormData): ScheduleInput {
@@ -353,27 +296,4 @@ export async function deleteLicenseScheduleAction(formData: FormData) {
   if (error) redirectMessage(returnTo, "error", `일정 삭제 실패: ${error.message}`);
   revalidateLicenseSchedules(text(formData, "certificationCode"));
   redirectMessage(returnTo, "saved", "시험 일정을 삭제했습니다.");
-}
-
-const THEORY_IMAGE_TYPES: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif" };
-const THEORY_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
-
-export async function uploadTheoryImageAction(formData: FormData): Promise<{ url: string } | { error: string }> {
-  try {
-    await assertAdminAction();
-  } catch (error) {
-    return { error: error instanceof Error ? error.message : "관리자 권한이 필요합니다." };
-  }
-  const file = formData.get("file");
-  if (!(file instanceof File)) return { error: "파일을 선택해 주세요." };
-  const ext = THEORY_IMAGE_TYPES[file.type];
-  if (!ext) return { error: "PNG, JPEG, WEBP, GIF 이미지만 업로드할 수 있습니다." };
-  if (file.size > THEORY_IMAGE_MAX_BYTES) return { error: "이미지 용량은 5MB 이하만 가능합니다." };
-
-  const admin = createAdminClient();
-  const objectPath = `${crypto.randomUUID()}.${ext}`;
-  const { error } = await admin.storage.from("theory-images").upload(objectPath, file, { contentType: file.type, upsert: false });
-  if (error) return { error: `이미지 업로드 실패: ${error.message}` };
-  const { data } = admin.storage.from("theory-images").getPublicUrl(objectPath);
-  return { url: data.publicUrl };
 }

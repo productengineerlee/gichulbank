@@ -108,7 +108,7 @@ export async function gradeExam(context: Context, submitted: SubmittedAnswers): 
   const maxScore = Number(exam.total_score);
   const passingScore = Number(exam.passing_score);
   // 경영정보시각화능력처럼 "과목당 최소 점수"가 있는 시험은 총점 기준을 넘겨도
-  // 한 과목이라도 최소 점수 미달이면 불합격 처리한다. min_score가 없는 과목(AICE)은 그대로 통과.
+  // 한 과목이라도 최소 점수 미달이면 불합격 처리한다. min_score가 없는 과목은 그대로 통과.
   const meetsSectionMinimums = sectionResults.every((section) => section.minScore === null || section.earnedScore >= section.minScore);
   const diagnostics = await generateDiagnostics(sectionResults, questionResults);
   return {

@@ -16,3 +16,4 @@ data/gongin/
 # 자동 생성 파일 (Next.js 타입 연결, TypeScript 증분 빌드 캐시)
 next-env.d.ts
 *.tsbuildinfo
+backups/
