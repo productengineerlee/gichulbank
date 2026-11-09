@@ -118,8 +118,8 @@ export default async function LicenseDetailPage({ params }: { params: Promise<{ 
                 <h3>{exam.title}</h3>
                 <div className="catalog-meta"><span><Clock3 />{exam.durationMinutes}분</span><span><FileQuestion />{exam.questionCount}문항</span></div>
                 <div className="license-exam-modes">
-                  <Link href={`/exams/${exam.slug}/take`}><b>시험모드</b><small>제한시간 · 다 풀고 채점</small></Link>
                   <Link className="practice" href={`/exams/${exam.slug}/practice`}><b>연습모드</b><small>한 문제씩 바로 정답·해설</small></Link>
+                  <Link href={`/exams/${exam.slug}/take`}><b>시험모드</b><small>제한시간 · 다 풀고 채점</small></Link>
                 </div>
               </article>
             ))}
