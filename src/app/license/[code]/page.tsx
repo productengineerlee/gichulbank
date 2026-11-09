@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, ChevronDown, Clock3, FileQuestion } from "lucide-react";
+import { ArrowLeft, ChevronDown, Clock3, FileQuestion } from "lucide-react";
 import { ExamHeader } from "@/components/exams/exam-header";
 import { RoundQuestionStats } from "@/components/license/round-question-stats";
 import { getCertification } from "@/lib/certifications";
@@ -42,7 +42,6 @@ export default async function LicenseDetailPage({ params }: { params: Promise<{ 
           <span className="kind-pill quiz">자격증 문제풀이</span>
           <h1>{cert.name}</h1>
           {cert.description && <p>{cert.description}</p>}
-          <Link className="daily-cta" href={`/practice?mode=daily&cert=${cert.code}`}><span><b>오늘의 추천 10문제</b><small>오답 복습 · 약한 과목 · 안 푼 문제를 골라 드려요</small></span><ArrowRight size={16} /></Link>
         </div>
 
         <section className="license-section">
