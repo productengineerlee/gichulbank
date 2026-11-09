@@ -15,6 +15,7 @@ export type CertificationSchedule = {
   applyStart: string | null;
   applyEnd: string | null;
   notes: string | null;
+  memo: string | null;
 };
 
 export type CertificationExam = { slug: string; title: string; durationMinutes: number; questionCount: number };
@@ -68,7 +69,7 @@ export async function getCertification(code: string): Promise<CertificationDetai
   if (!cert) return null;
 
   const [{ data: schedules, error: scheduleError }, { data: exams, error: examError }] = await Promise.all([
-    admin.from("certification_schedules").select("id,round_name,exam_date,apply_start,apply_end,notes").eq("certification_id", cert.id).order("sort_order"),
+    admin.from("certification_schedules").select("id,round_name,exam_date,apply_start,apply_end,notes,memo").eq("certification_id", cert.id).order("sort_order"),
     admin.from("exams").select("id,slug,title,duration_minutes").eq("certification_id", cert.id).eq("status", "published").order("published_at", { ascending: false }),
   ]);
   if (scheduleError || examError || !exams) throw new Error("자격증 상세 정보를 불러오지 못했습니다.");
@@ -85,7 +86,7 @@ export async function getCertification(code: string): Promise<CertificationDetai
     description: cert.description,
     schedules: (schedules ?? []).map((schedule) => ({
       id: schedule.id, roundName: schedule.round_name, examDate: schedule.exam_date,
-      applyStart: schedule.apply_start, applyEnd: schedule.apply_end, notes: schedule.notes,
+      applyStart: schedule.apply_start, applyEnd: schedule.apply_end, notes: schedule.notes, memo: schedule.memo,
     })),
     exams: exams.map((exam) => ({
       slug: exam.slug, title: exam.title, durationMinutes: exam.duration_minutes,

@@ -21,6 +21,8 @@ export default async function LicenseDetailPage({ params }: { params: Promise<{ 
   const { code } = await params;
   const cert = await getCertification(code);
   if (!cert) notFound();
+  // 비고가 하나라도 있을 때만 일정표에 비고 칸을 보여 준다.
+  const hasScheduleMemo = cert.schedules.some((schedule) => schedule.memo);
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -49,14 +51,15 @@ export default async function LicenseDetailPage({ params }: { params: Promise<{ 
           {cert.schedules.length === 0 ? (
             <p className="schedule-empty">등록된 시험 일정이 없습니다.</p>
           ) : (
-            <div className="schedule-table">
-              <div className="schedule-row head"><span>회차</span><span>시험일</span><span>시험시간</span><span>접수기간</span></div>
+            <div className={`schedule-table${hasScheduleMemo ? " with-memo" : ""}`}>
+              <div className="schedule-row head"><span>회차</span><span>시험일</span><span>시험시간</span><span>접수기간</span>{hasScheduleMemo && <span>비고</span>}</div>
               {cert.schedules.map((schedule) => (
                 <div className="schedule-row" key={schedule.id}>
                   <span>{schedule.roundName}</span>
                   <span>{formatDate(schedule.examDate)}</span>
                   <span>{schedule.notes ?? "-"}</span>
                   <span>{schedule.applyStart && schedule.applyEnd ? `${formatDate(schedule.applyStart)} ~ ${formatDate(schedule.applyEnd)}` : "미정"}</span>
+                  {hasScheduleMemo && <span className="schedule-memo">{schedule.memo ?? "-"}</span>}
                 </div>
               ))}
             </div>

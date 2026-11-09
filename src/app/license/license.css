@@ -22,6 +22,8 @@
 .schedule-row{display:grid;grid-template-columns:1.2fr 1fr 1fr 1.4fr;gap:10px;padding:13px 16px;font-size:13px;color:#1f2328}
 .schedule-row+.schedule-row{border-top:1px solid #efede8}
 .schedule-row.head{background:#f7f6f3;font-weight:700;color:#858a91;font-size:12px}
+.schedule-table.with-memo .schedule-row{grid-template-columns:1.2fr 1fr .8fr 1.4fr 1.4fr}
+.schedule-memo{white-space:pre-line;word-break:keep-all}
 .schedule-empty{color:#858a91;font-size:13px;padding:20px 4px}
 
 .section-bars{display:flex;align-items:flex-end;justify-content:space-around;gap:12px;height:220px;padding:20px 12px 0;background:#f7f6f3;border-radius:10px;border-bottom:2px solid #e5e2dc}
@@ -95,7 +97,7 @@
 
 @media(max-width:760px){
   .license-exam-grid{grid-template-columns:1fr}
-  .schedule-row{grid-template-columns:1fr 1fr}
+  .schedule-row,.schedule-table.with-memo .schedule-row{grid-template-columns:1fr 1fr}
   .section-bars{gap:4px}
   .bar-track{width:32px}
   .round-question-chart{height:140px}

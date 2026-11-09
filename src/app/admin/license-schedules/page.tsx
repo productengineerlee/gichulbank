@@ -46,7 +46,7 @@ export default async function AdminLicenseSchedulesPage({ searchParams }: { sear
                 <label><span>접수 시작</span><input type="date" name="applyStart" defaultValue={schedule.apply_start ?? ""} /></label>
                 <label><span>접수 종료</span><input type="date" name="applyEnd" defaultValue={schedule.apply_end ?? ""} /></label>
               </div>
-              <label><span>비고 (관리자 메모, 사용자 화면에는 보이지 않음)</span><textarea name="memo" rows={2} defaultValue={schedule.memo ?? ""} /></label>
+              <label><span>비고 (자격증 상세 일정표에 표시)</span><textarea name="memo" rows={2} defaultValue={schedule.memo ?? ""} placeholder="예: 신분증 지참, 고사장 입실 09:40까지" /></label>
               <button className="admin-secondary"><Save />저장</button>
             </form>
             <form action={deleteLicenseScheduleAction} className="rule-delete-form">
@@ -75,7 +75,7 @@ export default async function AdminLicenseSchedulesPage({ searchParams }: { sear
               <label><span>접수 시작</span><input type="date" name="applyStart" /></label>
               <label><span>접수 종료</span><input type="date" name="applyEnd" /></label>
             </div>
-            <label><span>비고 (관리자 메모, 사용자 화면에는 보이지 않음)</span><textarea name="memo" rows={2} /></label>
+            <label><span>비고 (자격증 상세 일정표에 표시)</span><textarea name="memo" rows={2} placeholder="예: 신분증 지참, 고사장 입실 09:40까지" /></label>
             <button className="admin-primary"><Plus />일정 추가</button>
           </form>
         </details>
