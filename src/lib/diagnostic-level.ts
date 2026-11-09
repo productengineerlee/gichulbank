@@ -2,4 +2,4 @@
 // (diagnostics.ts re-exports these) and client components (result-view.tsx, mypage) that need the
 // same level -> Korean label mapping without pulling in diagnostics.ts's Supabase/server deps.
 export type DiagnosticLevel = "foundation" | "weak" | "developing" | "strong";
-export const levelLabel: Record<DiagnosticLevel, string> = { foundation: "기초 보강", weak: "집중 보강", developing: "발전 단계", strong: "강점" };
+export const levelLabel: Record<DiagnosticLevel, string> = { foundation: "기초 부족", weak: "보강 필요", developing: "합격권", strong: "안정권" };
