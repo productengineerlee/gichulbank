@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import type { CertificationSummary } from "@/lib/certifications";
 import type { AccuracyStat } from "@/lib/insights";
 import { CertGrid, SectionTitle } from "./home-parts";
+import type { CertificationProof } from "@/lib/reviews";
 
 export type MemberSummary = {
   name: string;
@@ -31,7 +32,7 @@ function Panel({ label, value, note, href, linkLabel }: { label: string; value: 
   );
 }
 
-export function MemberHome({ summary, certifications }: { summary: MemberSummary; certifications: CertificationSummary[] }) {
+export function MemberHome({ summary, certifications, proofs }: { summary: MemberSummary; certifications: CertificationSummary[]; proofs?: Record<string, CertificationProof> }) {
   const { streak, review, mainCert, inProgress } = summary;
   const dailyHref = mainCert ? `/practice?mode=daily&cert=${mainCert.code}` : "/practice?mode=daily";
   const recent = streak?.recent.slice(-7) ?? [];
@@ -91,7 +92,7 @@ export function MemberHome({ summary, certifications }: { summary: MemberSummary
 
       <section className="mx-auto max-w-6xl px-5 py-14">
         <SectionTitle eyebrow="기출문제" title="회차별 기출 풀기" action={{ href: "/license", label: "전체 자격증 보기" }} />
-        <CertGrid certifications={certifications} loggedIn />
+        <CertGrid certifications={certifications} loggedIn proofs={proofs} />
       </section>
     </>
   );

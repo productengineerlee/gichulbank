@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ChevronDown, Clock3, FileQuestion } from "lucide-react";
+import { ArrowLeft, ChevronDown, Clock3, FileQuestion, Star } from "lucide-react";
 import { ExamHeader } from "@/components/exams/exam-header";
+import { ProofLine } from "@/components/home/home-parts";
 import { RoundQuestionStats } from "@/components/license/round-question-stats";
 import { getCertification } from "@/lib/certifications";
 import { getCertificationStats, getWrongAnswerNotebook } from "@/lib/license-stats";
 import { promptPreview } from "@/lib/format-prompt";
+import { getCertificationProofs, getCertificationReviews } from "@/lib/reviews";
 import { createClient } from "@/lib/supabase/server";
 import "../../exams/exams.css";
 import "../license.css";
@@ -26,10 +28,13 @@ export default async function LicenseDetailPage({ params }: { params: Promise<{ 
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const [stats, wrongAnswers] = await Promise.all([
+  const [stats, wrongAnswers, proofs, reviews] = await Promise.all([
     getCertificationStats(cert.id),
     user ? getWrongAnswerNotebook(user.id, cert.id) : Promise.resolve([]),
+    getCertificationProofs([cert.id]),
+    getCertificationReviews(cert.id),
   ]);
+  const proof = proofs[cert.id];
   // cert.exams는 published_at 순으로 정렬되어 있으므로, "문제풀이 시작" 목록과 같은 순서로 탭이 보이게 그 순서를 따른다.
   const roundStatsBySlug = new Map(stats.roundStats.map((round) => [round.examSlug, round]));
   const roundStats = cert.exams.map((exam) => roundStatsBySlug.get(exam.slug)).filter((round) => round !== undefined);
@@ -44,6 +49,7 @@ export default async function LicenseDetailPage({ params }: { params: Promise<{ 
           <span className="kind-pill quiz">자격증 문제풀이</span>
           <h1>{cert.name}</h1>
           {cert.description && <p>{cert.description}</p>}
+          <ProofLine proof={proof} className="mt-4" />
         </div>
 
         <section className="license-section">
@@ -129,6 +135,25 @@ export default async function LicenseDetailPage({ params }: { params: Promise<{ 
             ))}
           </div>
         </section>
+
+        {proof?.ratingAverage != null && reviews.length > 0 && (
+          <section className="license-section">
+            <div className="license-section-head"><h2>수험생 후기</h2><p>회차를 끝까지 푼 수험생이 남긴 후기예요. 평균 <b className="respondent-count">★ {proof.ratingAverage.toFixed(1)}</b> · 후기 {proof.ratingCount.toLocaleString()}개</p></div>
+            <div className="review-list">
+              {reviews.map((review) => (
+                <article className="review-card" key={review.id}>
+                  <div className="review-card-top">
+                    <span className="review-card-stars" aria-label={`별 ${review.rating}개`}>{[1, 2, 3, 4, 5].map((value) => <Star key={value} className={value <= review.rating ? "on" : ""} aria-hidden />)}</span>
+                    <b>{review.rating}.0</b>
+                    <em>회차 완료 후 작성</em>
+                  </div>
+                  <p>{review.comment}</p>
+                  <small>{review.examTitle} · {formatDate(review.createdAt)}</small>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
 
         {user && wrongAnswers.length > 0 && (
           <details className="license-accordion">

@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { assertAdminAction } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -296,4 +296,18 @@ export async function deleteLicenseScheduleAction(formData: FormData) {
   if (error) redirectMessage(returnTo, "error", `일정 삭제 실패: ${error.message}`);
   revalidateLicenseSchedules(text(formData, "certificationCode"));
   redirectMessage(returnTo, "saved", "시험 일정을 삭제했습니다.");
+}
+
+/** 회차 후기 공개/숨김 전환. 숨긴 후기는 평균 별점과 후기 목록에서 빠진다. */
+export async function setReviewHiddenAction(formData: FormData) {
+  await assertAdminAction();
+  const id = text(formData, "id");
+  const hidden = text(formData, "hidden") === "true";
+  const returnTo = resolveReturnTo(formData, "/admin/reviews");
+  const admin = createAdminClient();
+  const { error } = await admin.from("exam_reviews").update({ is_hidden: hidden }).eq("id", id);
+  if (error) redirectMessage(returnTo, "error", `후기 상태 변경 실패: ${error.message}`);
+  updateTag("exam_reviews");
+  revalidatePath("/admin/reviews");
+  redirectMessage(returnTo, "saved", hidden ? "후기를 숨겼습니다." : "후기를 다시 공개했습니다.");
 }

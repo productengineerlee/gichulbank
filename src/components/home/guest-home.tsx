@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import type { CertificationSummary } from "@/lib/certifications";
 import type { SiteStats } from "@/lib/exams";
 import { CertGrid, SectionTitle } from "./home-parts";
+import type { CertificationProof } from "@/lib/reviews";
 
 const FEATURES = [
   { title: "회차별 실전 기출", body: "실제 시험과 같은 시간·배점으로 회차 전체를 풀고, 제출하면 바로 채점과 해설을 볼 수 있어요." },
@@ -48,7 +49,7 @@ function AppPreview() {
   );
 }
 
-export function GuestHome({ certifications, stats }: { certifications: CertificationSummary[]; stats: SiteStats }) {
+export function GuestHome({ certifications, stats, proofs }: { certifications: CertificationSummary[]; stats: SiteStats; proofs?: Record<string, CertificationProof> }) {
   const rounds = certifications.reduce((sum, cert) => sum + cert.examCount, 0);
   return (
     <>
@@ -88,7 +89,7 @@ export function GuestHome({ certifications, stats }: { certifications: Certifica
 
       <section id="certifications" className="mx-auto max-w-6xl px-5 py-20">
         <SectionTitle eyebrow="기출문제" title="어떤 시험을 준비하세요?" description="회차 전체를 실전처럼 풀거나, 오늘의 추천 10문제로 가볍게 시작하세요." action={{ href: "/license", label: "전체 자격증 보기" }} />
-        <CertGrid certifications={certifications} loggedIn={false} />
+        <CertGrid certifications={certifications} loggedIn={false} proofs={proofs} />
         <p className="mt-6 text-sm text-mute">국가전문자격·공무원 시험 기출문제를 차례로 추가하고 있습니다.</p>
       </section>
 

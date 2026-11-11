@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getSiteStats } from "@/lib/exams";
+import { getCertificationProofs } from "@/lib/reviews";
 import { listCertifications } from "@/lib/certifications";
 import { getReviewCounts } from "@/lib/review";
 import { loadLearningInsights, loadStudyStreak } from "@/lib/insights";
@@ -36,14 +37,15 @@ async function loadMemberSummary(supabase: Awaited<ReturnType<typeof createClien
 export default async function Home() {
   const supabase = await createClient();
   const [{ data: { user } }, certifications] = await Promise.all([supabase.auth.getUser(), listCertifications()]);
+  const proofs = await getCertificationProofs(certifications.map((cert) => cert.id));
 
   return (
     <div className="min-h-screen bg-white text-ink-soft">
       <HomeHeader loggedIn={Boolean(user)} />
       <main>
         {user
-          ? <MemberHome summary={await loadMemberSummary(supabase, user.id, user.email)} certifications={certifications} />
-          : <GuestHome certifications={certifications} stats={await getSiteStats()} />}
+          ? <MemberHome summary={await loadMemberSummary(supabase, user.id, user.email)} certifications={certifications} proofs={proofs} />
+          : <GuestHome certifications={certifications} stats={await getSiteStats()} proofs={proofs} />}
       </main>
       <HomeFooter />
     </div>

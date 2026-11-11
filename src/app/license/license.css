@@ -102,3 +102,5 @@
   .bar-track{width:32px}
   .round-question-chart{height:140px}
 }
+.review-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.review-card{border:1px solid #e5e2dc;border-radius:12px;padding:16px 18px;background:#fff;display:flex;flex-direction:column;gap:8px}.review-card-top{display:flex;align-items:center;gap:6px}.review-card-stars{display:flex;gap:1px}.review-card-stars svg{width:16px;height:16px;color:#d3cfc7;fill:#efede8}.review-card-stars svg.on{color:#d9a21b;fill:#f2b83a}.review-card-top b{font-size:14px;color:#1f2328}.review-card-top em{font-style:normal;font-size:11px;font-weight:700;color:#4b5058;background:#f7f6f3;border-radius:20px;padding:3px 8px}.review-card p{margin:0;font-size:14px;line-height:1.65;color:#1f2328;white-space:pre-line;word-break:keep-all}.review-card small{font-size:12px;color:#858a91}
+@media(max-width:760px){.review-list{grid-template-columns:1fr}}

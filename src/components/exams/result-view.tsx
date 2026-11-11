@@ -9,6 +9,7 @@ import { levelLabel } from "@/lib/diagnostic-level";
 import { promptPreview } from "@/lib/format-prompt";
 import { examSource } from "@/lib/exam-source";
 import { ExplanationView } from "@/components/explanation-view";
+import { ReviewBox } from "@/components/exams/review-box";
 
 function Radar({ values, labels }: { values: number[]; labels: string[] }) {
   const c = 100, r = 60, n = values.length;
@@ -89,6 +90,7 @@ export function ResultView({ slug }: { slug: string }) {
         <article className="result-card"><h2>영역별 점수</h2><div className="section-bars">{result.sections.map(section => <div key={section.code}><b>{section.earnedScore}<small>/{section.maxScore}</small></b><div className="bar-track"><i style={section.percentage > 0 ? { height: `${Math.max(section.percentage, 4)}%` } : { height: 0 }} /></div><span>{section.title}</span></div>)}</div></article>
         <article className="result-card radar-card"><h2>영역별 역량 균형</h2><Radar values={result.sections.map(section => section.percentage)} labels={result.sections.map(section => section.title)} /><div className="radar-labels">{result.sections.map(section => <span key={section.code}>{section.title}<b>{section.percentage}%</b></span>)}</div></article>
       </div>
+      <ReviewBox attemptId={result.id} />
 
       <section className="competency-section"><div className="diagnostic-heading"><div><h2>영역별 진단</h2><p>영역별 정답과 배점을 기준으로 강점과 보강 방법을 안내합니다.</p></div></div><div className="competency-grid">{result.sections.map(section => { const diagnostic = sectionDiagnostics.get(section.code); const level = diagnostic?.level ?? "developing"; return <article className={`competency-card level-${level}`} key={section.code}><div className="competency-top"><div><span>{levelLabel[level]}</span><h3>{section.title}</h3></div><b>{section.percentage}<small>%</small></b></div><div className="competency-meter"><i style={{ width: `${section.percentage}%` }} /></div><small className="competency-count">정답 {section.correctCount}/{section.questionCount} · {section.earnedScore}/{section.maxScore}점</small><p>{diagnostic?.comment ?? legacyComment(section.percentage)}</p><p className="action-line"><b>보강 방법</b>{diagnostic?.recommendation ?? "오답 해설을 확인하고 같은 유형을 다시 풀어보세요."}</p></article>; })}</div></section>
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CertGrid, HomeFooter, HomeHeader } from "@/components/home/home-parts";
+import { getCertificationProofs } from "@/lib/reviews";
 import { listCertifications } from "@/lib/certifications";
 import { createClient } from "@/lib/supabase/server";
 
@@ -15,6 +16,7 @@ const STEPS = [
 export default async function LicensePage() {
   const supabase = await createClient();
   const [{ data: { user } }, certifications] = await Promise.all([supabase.auth.getUser(), listCertifications()]);
+  const proofs = await getCertificationProofs(certifications.map((cert) => cert.id));
   const loggedIn = Boolean(user);
   const examTotal = certifications.reduce((sum, cert) => sum + cert.examCount, 0);
   const questionTotal = certifications.reduce((sum, cert) => sum + cert.questionCount, 0);
@@ -44,7 +46,7 @@ export default async function LicensePage() {
         <section className="mx-auto max-w-6xl px-5 py-12">
           {certifications.length === 0
             ? <p className="rounded-xl border border-dashed border-rule py-16 text-center text-mute">준비 중인 자격증이 없습니다.</p>
-            : <CertGrid certifications={certifications} loggedIn={loggedIn} />}
+            : <CertGrid certifications={certifications} loggedIn={loggedIn} proofs={proofs} />}
         </section>
 
         <section className="border-t border-rule bg-paper">

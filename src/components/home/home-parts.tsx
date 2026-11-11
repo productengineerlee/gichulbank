@@ -1,8 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Star, Users } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
 import type { CertificationSummary } from "@/lib/certifications";
+import type { CertificationProof } from "@/lib/reviews";
 
 const NAV_LINK = "rounded-md px-3 py-2 text-ink-soft hover:bg-black/[0.04] hover:text-ink";
 
@@ -39,7 +40,18 @@ export function HomeHeader({ loggedIn, isAdmin = false }: { loggedIn: boolean; i
   );
 }
 
-export function CertGrid({ certifications, loggedIn }: { certifications: CertificationSummary[]; loggedIn: boolean }) {
+/** 평균 별점·응시자 수 한 줄. 기준(응시자 30명, 후기 5개) 미만인 값은 null 이라 보이지 않는다. */
+export function ProofLine({ proof, className = "" }: { proof?: CertificationProof; className?: string }) {
+  if (!proof || (proof.ratingAverage === null && proof.respondentCount === null)) return null;
+  return (
+    <p className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-soft ${className}`}>
+      {proof.ratingAverage !== null && <span className="flex items-center gap-1"><Star className="size-4 fill-[#f2b83a] text-[#d9a21b]" aria-hidden /><b className="font-semibold text-ink">{proof.ratingAverage.toFixed(1)}</b><span className="text-mute">({proof.ratingCount.toLocaleString("ko-KR")})</span><span className="sr-only">점, 후기 {proof.ratingCount}개</span></span>}
+      {proof.respondentCount !== null && <span className="flex items-center gap-1"><Users className="size-4 text-mute" aria-hidden />응시자 {proof.respondentCount.toLocaleString("ko-KR")}명</span>}
+    </p>
+  );
+}
+
+export function CertGrid({ certifications, loggedIn, proofs }: { certifications: CertificationSummary[]; loggedIn: boolean; proofs?: Record<string, CertificationProof> }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {certifications.map((cert) => (
@@ -53,6 +65,7 @@ export function CertGrid({ certifications, loggedIn }: { certifications: Certifi
             {cert.questionCount > 0 && <div><dt className="text-xs text-mute">문항</dt><dd className="mt-0.5 font-semibold text-ink">{cert.questionCount.toLocaleString("ko-KR")}</dd></div>}
             {cert.questionCount > 0 && <div><dt className="text-xs text-mute">해설</dt><dd className="mt-0.5 font-semibold text-ink">전 문항</dd></div>}
           </dl>
+          <ProofLine proof={proofs?.[cert.id]} className="mt-3" />
           <div className="mt-auto flex gap-2 pt-6 text-sm font-medium">
             <Link className="flex-1 rounded-md border border-rule px-3 py-2.5 text-center text-ink hover:bg-paper" href={`/license/${cert.code}`}>회차 풀기</Link>
             <Link className="flex-1 rounded-md bg-ink px-3 py-2.5 text-center text-white hover:bg-ink-soft" href={loggedIn ? `/practice?mode=daily&cert=${cert.code}` : "/auth/signup"}>오늘의 10문제</Link>
