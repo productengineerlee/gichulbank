@@ -40,14 +40,14 @@ export function HomeHeader({ loggedIn, isAdmin = false }: { loggedIn: boolean; i
   );
 }
 
-/** 평균 별점·응시자 수 한 줄. 기준(응시자 30명, 후기 5개) 미만인 값은 null 이라 보이지 않는다. */
-export function ProofLine({ proof, className = "" }: { proof?: CertificationProof; className?: string }) {
+/** 평균 별점·응시자 수 배지. 기준(응시자 30명, 후기 5개) 미만인 값은 null 이라 보이지 않는다. */
+export function ProofBadges({ proof, className = "" }: { proof?: CertificationProof; className?: string }) {
   if (!proof || (proof.ratingAverage === null && proof.respondentCount === null)) return null;
   return (
-    <p className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-soft ${className}`}>
-      {proof.ratingAverage !== null && <span className="flex items-center gap-1"><Star className="size-4 fill-[#f2b83a] text-[#d9a21b]" aria-hidden /><b className="font-semibold text-ink">{proof.ratingAverage.toFixed(1)}</b><span className="text-mute">({proof.ratingCount.toLocaleString("ko-KR")})</span><span className="sr-only">점, 후기 {proof.ratingCount}개</span></span>}
-      {proof.respondentCount !== null && <span className="flex items-center gap-1"><Users className="size-4 text-mute" aria-hidden />응시자 {proof.respondentCount.toLocaleString("ko-KR")}명</span>}
-    </p>
+    <div className={`flex shrink-0 flex-wrap items-center justify-end gap-1.5 text-xs font-semibold ${className}`}>
+      {proof.ratingAverage !== null && <span className="flex items-center gap-1 rounded-full bg-[#fdf3dc] px-2.5 py-1 text-[#8a5a00]"><Star className="size-3.5 fill-[#f2b83a] text-[#d9a21b]" aria-hidden />{proof.ratingAverage.toFixed(1)}<span className="font-medium opacity-75">({proof.ratingCount.toLocaleString("ko-KR")})</span><span className="sr-only">점, 후기 {proof.ratingCount}개</span></span>}
+      {proof.respondentCount !== null && <span className="flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-accent"><Users className="size-3.5" aria-hidden />응시자 {proof.respondentCount.toLocaleString("ko-KR")}명</span>}
+    </div>
   );
 }
 
@@ -56,7 +56,10 @@ export function CertGrid({ certifications, loggedIn, proofs }: { certifications:
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {certifications.map((cert) => (
         <article key={cert.code} className="flex flex-col rounded-xl border border-rule bg-white p-6 transition-colors hover:border-ink/25">
-          <h3 className="text-lg font-bold tracking-tight text-ink">{cert.name}</h3>
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="text-lg font-bold tracking-tight text-ink">{cert.name}</h3>
+            <ProofBadges proof={proofs?.[cert.id]} className="mt-0.5" />
+          </div>
           {/* 설명이 한 줄이든 두 줄이든 아래 구분선 높이가 카드끼리 맞도록 두 줄 높이를 확보한다 */}
           <p className="mt-1.5 line-clamp-2 min-h-[3.25em] text-sm leading-relaxed text-mute [word-break:keep-all]">{cert.description}</p>
           <dl className="mt-5 flex gap-6 border-t border-rule pt-4 text-sm">
@@ -65,7 +68,6 @@ export function CertGrid({ certifications, loggedIn, proofs }: { certifications:
             {cert.questionCount > 0 && <div><dt className="text-xs text-mute">문항</dt><dd className="mt-0.5 font-semibold text-ink">{cert.questionCount.toLocaleString("ko-KR")}</dd></div>}
             {cert.questionCount > 0 && <div><dt className="text-xs text-mute">해설</dt><dd className="mt-0.5 font-semibold text-ink">전 문항</dd></div>}
           </dl>
-          <ProofLine proof={proofs?.[cert.id]} className="mt-3" />
           <div className="mt-auto flex gap-2 pt-6 text-sm font-medium">
             <Link className="flex-1 rounded-md border border-rule px-3 py-2.5 text-center text-ink hover:bg-paper" href={`/license/${cert.code}`}>회차 풀기</Link>
             <Link className="flex-1 rounded-md bg-ink px-3 py-2.5 text-center text-white hover:bg-ink-soft" href={loggedIn ? `/practice?mode=daily&cert=${cert.code}` : "/auth/signup"}>오늘의 10문제</Link>

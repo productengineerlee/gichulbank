@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ChevronDown, Clock3, FileQuestion, Star } from "lucide-react";
 import { ExamHeader } from "@/components/exams/exam-header";
-import { ProofLine } from "@/components/home/home-parts";
+import { ProofBadges } from "@/components/home/home-parts";
 import { RoundQuestionStats } from "@/components/license/round-question-stats";
 import { getCertification } from "@/lib/certifications";
 import { getCertificationStats, getWrongAnswerNotebook } from "@/lib/license-stats";
@@ -49,7 +49,7 @@ export default async function LicenseDetailPage({ params }: { params: Promise<{ 
           <span className="kind-pill quiz">자격증 문제풀이</span>
           <h1>{cert.name}</h1>
           {cert.description && <p>{cert.description}</p>}
-          <ProofLine proof={proof} className="mt-4" />
+          <ProofBadges proof={proof} className="mt-4 justify-start" />
         </div>
 
         <section className="license-section">
