@@ -50,7 +50,27 @@ function fail(message: string, status = 500): never {
 /** Fetches everything needed to run/grade one exam attempt. Callers should fetch this once per
  * request and thread it through, rather than calling this per sub-step (it used to be called up
  * to 4x in a single /submit request). */
-export async function getExamContext(slug: string): Promise<Context> {
+// 시험 문항·보기·정답 묶음은 응시 중 자동 저장·제출·결과 보기마다 필요하지만 거의 바뀌지 않는다.
+// 같은 서버 인스턴스에서는 1분 동안 기억해 두고 다시 읽지 않는다(문항을 고치면 최대 1분 뒤 반영).
+const EXAM_CONTEXT_TTL_MS = 60_000;
+const examContextCache = new Map<string, { expiresAt: number; promise: Promise<Context> }>();
+
+export function getExamContext(slug: string): Promise<Context> {
+  const cached = examContextCache.get(slug);
+  if (cached && cached.expiresAt > Date.now()) return cached.promise;
+  const promise = loadExamContext(slug);
+  examContextCache.set(slug, { expiresAt: Date.now() + EXAM_CONTEXT_TTL_MS, promise });
+  // 실패한 조회는 기억하지 않는다.
+  promise.catch(() => { if (examContextCache.get(slug)?.promise === promise) examContextCache.delete(slug); });
+  return promise;
+}
+
+/** 관리자가 시험·문항을 고친 직후 이 인스턴스의 기억을 비운다(다른 인스턴스는 1분 안에 자연히 갱신). */
+export function clearExamContextCache() {
+  examContextCache.clear();
+}
+
+async function loadExamContext(slug: string): Promise<Context> {
   const admin = createAdminClient();
   const { data: exam, error: examError } = await admin
     .from("exams")
@@ -206,24 +226,17 @@ function buildAnswerRows(
  * arrive out of order (retry, network jitter), and an older request's smaller snapshot must not
  * be able to wipe out an answer a newer request already persisted. */
 async function syncAnswerRows(admin: AdminClient, attemptId: string, rows: Database["public"]["Tables"]["attempt_answers"]["Insert"][]) {
-  const { data: existing, error: existingError } = await admin
-    .from("attempt_answers")
-    .select("question_id,selected_choice_id,answer_text")
-    .eq("attempt_id", attemptId);
-  if (existingError) fail("기존 답안을 확인하지 못했습니다.");
-
-  const active = new Set(rows.map((row) => String(row.question_id)));
-  const staleUnanswered = (existing ?? [])
-    .filter((row) => !active.has(row.question_id) && !row.selected_choice_id && !String(row.answer_text ?? "").trim())
-    .map((row) => row.question_id);
-  if (staleUnanswered.length) {
-    const { error } = await admin.from("attempt_answers").delete().eq("attempt_id", attemptId).in("question_id", staleUnanswered);
-    if (error) fail("삭제된 답안을 반영하지 못했습니다.");
-  }
   if (rows.length) {
     const { error } = await admin.from("attempt_answers").upsert(rows, { onConflict: "attempt_id,question_id" });
     if (error) fail("답안을 저장하지 못했습니다.");
   }
+  // 기존 답안을 읽어 오지 않고, "이번 목록에 없고 답도 없는 행(표시만 했던 행)"만 DB에서 바로 지운다.
+  // 답이 들어 있는 행은 지우지 않는다(늦게 도착한 예전 자동 저장이 새 답을 지우지 않도록).
+  let stale = admin.from("attempt_answers").delete().eq("attempt_id", attemptId)
+    .is("selected_choice_id", null).or("answer_text.is.null,answer_text.eq.");
+  if (rows.length) stale = stale.not("question_id", "in", `(${rows.map((row) => row.question_id).join(",")})`);
+  const { error } = await stale;
+  if (error) fail("삭제된 답안을 반영하지 못했습니다.");
 }
 
 export async function startOrResumeAttempt(slug: string, userId: string): Promise<AttemptDraft> {

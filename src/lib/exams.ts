@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { inList, listAdminAttemptIds, listAdminUserIds } from "@/lib/stats-exclusion";
 import type { ExamKind } from "@/types/database";
@@ -87,7 +88,7 @@ export type SiteStats = { attemptCount: number; answeredCount: number };
 
 /** 랜딩 페이지 이용 현황. 행을 내려받지 않고 DB에서 개수만 센다(PostgREST 기본 1,000행 제한에 걸리지 않음).
  * 누적 문제 풀이 = 저장된 문항 답안 수(답을 고른 문항만 행이 생긴다). */
-export async function getSiteStats(): Promise<SiteStats> {
+async function computeSiteStats(): Promise<SiteStats> {
   const admin = createAdminClient();
   // 관리자 계정의 테스트 응시는 이용 현황에서 뺀다. 응시는 관리자 id(몇 개뿐)로 거르고, 답안은
   // 전체 개수에서 관리자 응시의 답안 개수를 뺀다(응시 id 목록을 URL에 넣으면 길이 제한에 걸릴 수 있다).
@@ -107,3 +108,6 @@ export async function getSiteStats(): Promise<SiteStats> {
   }
   return { attemptCount: attempts.count ?? 0, answeredCount: Math.max(0, (answers.count ?? 0) - adminAnswerCount) };
 }
+
+/** 메인 이용 현황. 10분 동안 재사용한다. */
+export const getSiteStats = unstable_cache(computeSiteStats, ["site-stats"], { revalidate: 600, tags: ["certification-stats"] });

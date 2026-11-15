@@ -3,6 +3,7 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { assertAdminAction } from "@/lib/admin-auth";
+import { clearExamContextCache } from "@/lib/attempts";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { DiagnosticLevel } from "@/lib/diagnostics";
 import type { ExamStatus, GradingType } from "@/types/database";
@@ -32,6 +33,10 @@ function parseOrRedirect<T>(returnTo: string, parse: () => T): T {
 
 export async function updateExamAction(formData: FormData) {
   await assertAdminAction();
+  clearExamContextCache();
+  // 회차·문항 수와 통계 캐시도 비운다.
+  updateTag("certifications");
+  updateTag("certification-stats");
   const admin = createAdminClient();
   const id = text(formData, "id");
   const title = text(formData, "title");
@@ -59,6 +64,10 @@ export async function updateExamAction(formData: FormData) {
 
 export async function updateQuestionAction(formData: FormData) {
   await assertAdminAction();
+  clearExamContextCache();
+  // 회차·문항 수와 통계 캐시도 비운다.
+  updateTag("certifications");
+  updateTag("certification-stats");
   const admin = createAdminClient();
   const id = text(formData, "id");
   const returnTo = resolveReturnTo(formData, `/admin/questions/${id}`);
@@ -254,6 +263,7 @@ function scheduleInput(formData: FormData): ScheduleInput {
 }
 
 function revalidateLicenseSchedules(code: string) {
+  updateTag("certifications");
   revalidatePath("/admin/license-schedules");
   revalidatePath(`/license/${code}`);
 }

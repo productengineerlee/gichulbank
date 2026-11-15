@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, fetchByIds } from "@/lib/supabase/paging";
 import { listAdminAttemptIds } from "@/lib/stats-exclusion";
@@ -40,7 +41,7 @@ function accuracyOf(attemptCount: number, correctCount: number) {
 const HARDEST_MIN_ATTEMPTS = 5;
 const HARDEST_LIMIT = 10;
 
-export async function getCertificationStats(certificationId: string): Promise<CertificationStats> {
+async function computeCertificationStats(certificationId: string): Promise<CertificationStats> {
   const admin = createAdminClient();
   const { data: exams, error: examError } = await admin.from("exams").select("id,slug,title").eq("certification_id", certificationId);
   if (examError) throw new Error("자격증 시험 목록을 불러오지 못했습니다.");
@@ -203,3 +204,6 @@ export async function getWrongAnswerNotebook(userId: string, certificationId: st
     .filter((item): item is WrongAnswerItem => item !== null)
     .sort((a, b) => (b.submittedAt ?? "").localeCompare(a.submittedAt ?? "") || a.number - b.number);
 }
+
+/** 자격증 통계(정답률·응시자 수 등). 답안 수천 개를 읽어 계산하므로 10분 동안 재사용한다. */
+export const getCertificationStats = unstable_cache(computeCertificationStats, ["certification-stats"], { revalidate: 600, tags: ["certification-stats"] });

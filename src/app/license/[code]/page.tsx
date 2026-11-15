@@ -7,7 +7,7 @@ import { RoundQuestionStats } from "@/components/license/round-question-stats";
 import { getCertification } from "@/lib/certifications";
 import { getCertificationStats, getWrongAnswerNotebook } from "@/lib/license-stats";
 import { promptPreview } from "@/lib/format-prompt";
-import { getCertificationProofs, getCertificationReviews } from "@/lib/reviews";
+import { getCertificationProofs, getCertificationReviews, RESPONDENT_MIN } from "@/lib/reviews";
 import { createClient } from "@/lib/supabase/server";
 import "../../exams/exams.css";
 import "../license.css";
@@ -34,7 +34,8 @@ export default async function LicenseDetailPage({ params }: { params: Promise<{ 
     getCertificationProofs([cert.id]),
     getCertificationReviews(cert.id),
   ]);
-  const proof = proofs[cert.id];
+  // 응시자 수는 아래 통계와 같은 값을 쓰도록 이 페이지의 통계로 맞춘다.
+  const proof = proofs[cert.id] && { ...proofs[cert.id], respondentCount: stats.respondentCount >= RESPONDENT_MIN ? stats.respondentCount : null };
   // cert.exams는 published_at 순으로 정렬되어 있으므로, "문제풀이 시작" 목록과 같은 순서로 탭이 보이게 그 순서를 따른다.
   const roundStatsBySlug = new Map(stats.roundStats.map((round) => [round.examSlug, round]));
   const roundStats = cert.exams.map((exam) => roundStatsBySlug.get(exam.slug)).filter((round) => round !== undefined);

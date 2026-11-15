@@ -146,7 +146,8 @@ export function ExamRunner({ exam }: { exam: PublicExam }) {
       } catch {
         setSaveState("local");
       }
-    }, 900);
+      // 브라우저에는 0.25초 만에 저장되므로, 서버 저장은 답을 연달아 고르는 동안 3초 모아서 한 번에 보낸다.
+    }, 3000);
     return () => {
       clearTimeout(localTimer);
       clearTimeout(serverTimer);

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchByIds } from "@/lib/supabase/paging";
 
@@ -29,7 +30,7 @@ export type CertificationDetail = {
   exams: CertificationExam[];
 };
 
-export async function listCertifications(): Promise<CertificationSummary[]> {
+async function loadCertifications(): Promise<CertificationSummary[]> {
   const admin = createAdminClient();
   const { data: certifications, error } = await admin
     .from("certifications")
@@ -57,7 +58,7 @@ export async function listCertifications(): Promise<CertificationSummary[]> {
   });
 }
 
-export async function getCertification(code: string): Promise<CertificationDetail | null> {
+async function loadCertification(code: string): Promise<CertificationDetail | null> {
   const admin = createAdminClient();
   const { data: cert, error } = await admin
     .from("certifications")
@@ -94,3 +95,8 @@ export async function getCertification(code: string): Promise<CertificationDetai
     })),
   };
 }
+
+// 자격증 목록·상세(회차·문항 수·일정)는 자주 바뀌지 않으므로 10분 동안 재사용한다.
+// 관리자가 시험·문항·일정을 고치면 updateTag("certifications") 로 바로 비운다.
+export const listCertifications = unstable_cache(loadCertifications, ["certifications-list"], { revalidate: 600, tags: ["certifications"] });
+export const getCertification = unstable_cache(loadCertification, ["certification-detail"], { revalidate: 600, tags: ["certifications"] });
