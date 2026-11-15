@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { CertGrid, HomeFooter, HomeHeader } from "@/components/home/home-parts";
+import { ExamHeader } from "@/components/exams/exam-header";
+import { CertGrid, HomeFooter } from "@/components/home/home-parts";
 import { getCertificationProofs } from "@/lib/reviews";
 import { listCertifications } from "@/lib/certifications";
 import { createClient } from "@/lib/supabase/server";
@@ -23,7 +24,7 @@ export default async function LicensePage() {
 
   return (
     <div className="min-h-screen bg-white text-ink-soft">
-      <HomeHeader loggedIn={loggedIn} />
+      <ExamHeader />
       <main>
         <section className="border-b border-rule bg-paper">
           <div className="mx-auto max-w-6xl px-5 pt-14 pb-12">

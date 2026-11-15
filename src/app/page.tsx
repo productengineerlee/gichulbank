@@ -6,7 +6,8 @@ import { getReviewCounts } from "@/lib/review";
 import { loadLearningInsights, loadStudyStreak } from "@/lib/insights";
 import { GuestHome } from "@/components/home/guest-home";
 import { MemberHome, type MemberSummary } from "@/components/home/member-home";
-import { HomeFooter, HomeHeader } from "@/components/home/home-parts";
+import { ExamHeader } from "@/components/exams/exam-header";
+import { HomeFooter } from "@/components/home/home-parts";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +42,7 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-white text-ink-soft">
-      <HomeHeader loggedIn={Boolean(user)} />
+      <ExamHeader />
       <main>
         {user
           ? <MemberHome summary={await loadMemberSummary(supabase, user.id, user.email)} certifications={certifications} proofs={proofs} />

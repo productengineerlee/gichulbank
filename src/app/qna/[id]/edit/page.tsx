@@ -29,7 +29,7 @@ export default async function EditQnaPostPage({ params, searchParams }: { params
     <main className="exam-app">
       <ExamHeader />
       <section className="exam-container qna-form-container">
-        <div className="exam-titlebar"><div><h1>질문 수정</h1></div></div>
+        <div className="exam-titlebar"><div><h1>개선요청 수정</h1></div></div>
         {error && <p className="qna-error">{error}</p>}
         <form action={updateQnaPostAction} className="qna-form">
           <input type="hidden" name="id" value={post.id} />

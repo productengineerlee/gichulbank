@@ -33,4 +33,4 @@ export function formatExplanation(explanation: string | null | undefined) {
   return text.replace(/^정답\s*[①②③④⑤]\s*\n+/, "").trim() || null;
 }
 
-export const AI_EXPLANATION_NOTE = "AI가 작성한 해설입니다. 틀린 내용이 보이면 QnA로 알려 주세요.";
+export const AI_EXPLANATION_NOTE = "AI가 작성한 해설입니다. 틀린 내용이 보이면 개선요청으로 알려 주세요.";

@@ -21,7 +21,7 @@ export default async function NewQnaPostPage({ searchParams }: { searchParams: P
     <main className="exam-app">
       <ExamHeader />
       <section className="exam-container qna-form-container">
-        <div className="exam-titlebar"><div><h1>질문 작성</h1></div></div>
+        <div className="exam-titlebar"><div><h1>개선요청 작성</h1></div></div>
         {error && <p className="qna-error">{error}</p>}
         <form action={createQnaPostAction} className="qna-form">
           <label>
@@ -32,7 +32,7 @@ export default async function NewQnaPostPage({ searchParams }: { searchParams: P
           </label>
           <label>
             제목
-            <input type="text" name="title" required maxLength={200} placeholder="질문 제목을 입력하세요" />
+            <input type="text" name="title" required maxLength={200} placeholder="제목을 입력하세요 (예: 한국사 79회 17번 정답 확인 요청)" />
           </label>
           <label>
             내용

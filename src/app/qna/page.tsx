@@ -32,8 +32,8 @@ export default async function QnaPage({ searchParams }: { searchParams: Promise<
       <ExamHeader />
       <section className="exam-container">
         <div className="exam-titlebar">
-          <div><h1>QnA 게시판</h1></div>
-          <p>자격증별로 궁금한 점을 질문하고 답변을 주고받는 공간입니다.</p>
+          <div><h1>개선요청</h1></div>
+          <p>문제·정답·해설 오류, 불편한 점, 바라는 기능을 알려 주세요. 확인 후 답변드려요.</p>
         </div>
         <div className="qna-toolbar">
           <div className="qna-filters">
@@ -45,7 +45,7 @@ export default async function QnaPage({ searchParams }: { searchParams: Promise<
           <Link className="qna-write-btn" href="/qna/new">글쓰기</Link>
         </div>
         {posts.length === 0 ? (
-          <p className="license-empty">등록된 질문이 없습니다. 첫 질문을 남겨보세요.</p>
+          <p className="license-empty">등록된 개선요청이 없습니다. 첫 요청을 남겨 보세요.</p>
         ) : (
           <ul className="qna-list">
             {posts.map((post) => (

@@ -19,7 +19,7 @@ export function HomeHeader({ loggedIn, isAdmin = false }: { loggedIn: boolean; i
           <Link className={NAV_LINK} href="/license">기출문제</Link>
           {loggedIn && <Link className={NAV_LINK} href="/review">오답노트</Link>}
           {loggedIn && <Link className={NAV_LINK} href="/mypage">학습 분석</Link>}
-          <Link className={NAV_LINK} href="/qna">QnA</Link>
+          <Link className={NAV_LINK} href="/qna">개선요청</Link>
           {isAdmin && <Link className={NAV_LINK} href="/admin">관리자</Link>}
         </nav>
         <div className="flex items-center gap-1 text-sm font-medium">
@@ -102,7 +102,7 @@ export function HomeFooter() {
         <nav className="flex gap-4">
           <Link className="hover:text-ink" href="/terms">이용약관</Link>
           <Link className="font-semibold text-ink-soft hover:text-ink" href="/privacy">개인정보처리방침</Link>
-          <Link className="hover:text-ink" href="/qna">문의(QnA)</Link>
+          <Link className="hover:text-ink" href="/qna">개선요청</Link>
         </nav>
         <p className="w-full text-xs">본 서비스는 각 시험의 공식 사이트가 아닌 학습용 서비스입니다. 기출문제의 저작권은 각 시험 시행기관에 있습니다. © 2026 기출뱅크</p>
       </div>
